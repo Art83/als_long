@@ -1,0 +1,5 @@
+"threshold","confirmed_full","confirmed_partial","ms_only_rna_gap","no_mn_expression","rna_only_ms_gap"
+0.3,1593,439,14,1357,3772
+0.5,1459,408,10,1361,3937
+0.7,1334,374,8,1363,4096
+0.9,1124,321,6,1365,4359

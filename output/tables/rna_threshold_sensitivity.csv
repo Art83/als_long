@@ -1,0 +1,10 @@
+"rule","n_genes_detected","confirmed_full","confirmed_partial","ms_only_rna_gap","no_mn_expression","rna_only_ms_gap"
+"pct>=0.10 + vst floor",27004,1459,408,10,1236,4062
+"pct>=0.20 + vst floor",25443,1459,408,10,1361,3937
+"pct>=0.30 + vst floor",24418,1459,408,10,1461,3837
+"pct>=0.50 + vst floor",22802,1459,408,10,1624,3674
+"pct>=0.10 only",27004,1459,408,10,1236,4062
+"pct>=0.20 only",25443,1459,408,10,1361,3937
+"pct>=0.30 only",24418,1459,408,10,1461,3837
+"pct>=0.50 only",22802,1459,408,10,1624,3674
+"edgeR::filterByExpr",19077,1445,404,28,1977,3321

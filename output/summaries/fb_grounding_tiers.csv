@@ -1,0 +1,6 @@
+"grounding_tier","n","pct"
+"confirmed_full",1459,20.3
+"confirmed_partial",408,5.7
+"ms_only_rna_gap",10,0.1
+"no_mn_expression",1361,19
+"rna_only_ms_gap",3937,54.9
