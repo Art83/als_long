@@ -1,0 +1,33 @@
+"gene_symbol","uniprot","cor_r","p_fdr","grounding_tier","route","specificity","primary_tissue","call","top_tissue","top_prob"
+"ART3","Q13508",0.446,3.61e-09,"rna_only_ms_gap","membrane","specific","Testis","caution","Testis",0.0865
+"HPGDS","O60760",0.427,2.39e-08,"no_mn_expression","intracellular","specific","Skin","caution","Skin",0.0957
+"ART3","Q13508",0.424,2.71e-08,"rna_only_ms_gap","membrane","specific","Testis","caution","Testis",0.0865
+"EHMT2","Q96KQ7",0.358,1.77e-05,"confirmed_full","intracellular","broad","multiple","caution","Colon",0.0503
+"IGFBP6","P24592",0.354,2.26e-05,"rna_only_ms_gap","secreted","broad","multiple","caution","Lung",0.0647
+"MSTN","O14793",0.349,3.12e-05,"rna_only_ms_gap","secreted","na",NA,"caution","Liver",1
+"CKM","P06732",0.335,9.02e-05,"no_mn_expression","intracellular","na",NA,"caution","Heart muscle",0.0833
+"IGFBP6","P24592",0.323,0.000216,"rna_only_ms_gap","secreted","broad","multiple","caution","Lung",0.0647
+"MYL3","P08590",0.32,0.000261,"rna_only_ms_gap","unknown","na",NA,"caution","Heart muscle",0.0833
+"RGMA","Q96B86",0.318,0.000289,"rna_only_ms_gap","membrane","broad","multiple","caution","Colon",0.0511
+"CXCL12","P48061",-0.314,0.000378,"rna_only_ms_gap","secreted","na",NA,"caution","Testis",0.0769
+"CD248","Q9HCU0",0.31,0.000478,"rna_only_ms_gap","membrane","broad","multiple","caution","Skin",0.0692
+"TNNT2","P45379",-0.292,0.00148,"no_mn_expression","unknown","na",NA,"caution","Heart muscle",0.0857
+"CD86","P42081",0.289,0.00175,"no_mn_expression","membrane","broad","multiple","caution","Liver",0.0566
+"L1CAM","P32004",0.283,0.00262,"confirmed_full","membrane","broad","multiple","caution","Cerebral cortex",0.0643
+"OPCML","Q14982",0.281,0.00294,"confirmed_full","membrane","na",NA,"caution","Cerebral cortex",0.0606
+"CACNA2D3","Q8IZS8",0.28,0.00294,"rna_only_ms_gap","membrane","na",NA,"caution","Cerebral cortex",0.0667
+"C9","P02748",-0.28,0.00294,"no_mn_expression","secreted","na",NA,"caution","Cerebral cortex",0.0588
+"CD55","P08174",0.275,0.00409,"rna_only_ms_gap","secreted","broad","multiple","caution","Lung",0.0634
+"C9","P02748",-0.261,0.00951,"no_mn_expression","secreted","na",NA,"caution","Cerebral cortex",0.0588
+"ACTN2","P35609",0.257,0.0121,"rna_only_ms_gap","intracellular","specific","Heart muscle, Skeletal muscle","caution","Heart muscle",0.0789
+"HAMP","P81172",-0.254,0.0142,"rna_only_ms_gap","secreted","na",NA,"caution","Cerebral cortex",0.069
+"NDUFB10","O96000",-0.254,0.0142,"confirmed_full","intracellular","broad","multiple","caution","Cerebral cortex",0.0421
+"RET","P07949",0.252,0.0154,"rna_only_ms_gap","membrane","broad","multiple","caution","Testis",0.0794
+"DCT","P40126",0.25,0.0168,"rna_only_ms_gap","membrane","sparse","Skin","decline","Skin",0.545
+"TGFBR3","Q03167",0.246,0.022,"rna_only_ms_gap","secreted","broad","multiple","caution","Testis",0.0616
+"ACHE","P22303",0.243,0.0246,"rna_only_ms_gap","secreted","na",NA,"caution","Colon",0.0952
+"DLK1","P80370",0.243,0.0253,"rna_only_ms_gap","membrane","specific","Adrenal gland","decline","Testis",0.0988
+"SPINT1","O43278",0.241,0.0281,"rna_only_ms_gap","secreted","na",NA,"caution","Cerebral cortex",0.0588
+"S100A12","P80511",-0.241,0.0281,"no_mn_expression","secreted","specific","Bone marrow, Spleen","caution","Spleen",0.0804
+"C5","P01031",-0.238,0.0315,"rna_only_ms_gap","secreted","na",NA,"caution","Cerebral cortex",0.0588
+"MYOM2","P54296",0.236,0.0356,"rna_only_ms_gap","intracellular","broad","multiple","caution","Heart muscle",0.0517

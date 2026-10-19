@@ -1,0 +1,5 @@
+"set","n_genes","entropy_median","entropy_norm_median","p_top_median","n_p_top_gt_0.5","n_tissues_median","wilcox_vs_bg_norm"
+"dap",59,4.5,0.847,0.067,2,46,0.10225991227462
+"prog_fdr",58,4.5,0.884,0.064,2,46,0.905537351937005
+"prog_nominal",660,4.59,0.898,0.062,20,46,0.471178996118946
+"background",6084,4.65,0.913,0.061,221,46,NA

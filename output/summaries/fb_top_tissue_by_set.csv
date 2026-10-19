@@ -1,0 +1,58 @@
+"set","top_tissue","n","pct"
+"background","Adrenal gland",47,0.8
+"background","Appendix",6,0.1
+"background","Bone marrow",2,0
+"background","Breast",9,0.1
+"background","Bronchus",5,0.1
+"background","Caudate",8,0.1
+"background","Cerebellum",21,0.3
+"background","Cerebral cortex",2247,36.9
+"background","Cervix",2,0
+"background","Colon",1414,23.2
+"background","Duodenum",3,0
+"background","Epididymis",11,0.2
+"background","Esophagus",6,0.1
+"background","Eye",5,0.1
+"background","Fallopian tube",2,0
+"background","Gallbladder",1,0
+"background","Hair",1,0
+"background","Heart muscle",347,5.7
+"background","Hypothalamus",2,0
+"background","Kidney",52,0.9
+"background","Lactating breast",1,0
+"background","Liver",369,6.1
+"background","Lung",283,4.7
+"background","Lymph node",22,0.4
+"background","Ovary",3,0
+"background","Pancreas",166,2.7
+"background","Parathyroid gland",1,0
+"background","Placenta",1,0
+"background","Prostate",1,0
+"background","Rectum",1,0
+"background","Retina",3,0
+"background","Salivary gland",1,0
+"background","Skin",298,4.9
+"background","Small intestine",3,0
+"background","Spleen",132,2.2
+"background","Stomach",109,1.8
+"background","Testis",497,8.2
+"background","Tonsil",2,0
+"dap","Cerebral cortex",19,32.2
+"dap","Cervix",1,1.7
+"dap","Colon",11,18.6
+"dap","Esophagus",1,1.7
+"dap","Heart muscle",12,20.3
+"dap","Liver",2,3.4
+"dap","Lung",3,5.1
+"dap","Salivary gland",1,1.7
+"dap","Skin",3,5.1
+"dap","Testis",6,10.2
+"prog_fdr","Adrenal gland",1,1.7
+"prog_fdr","Cerebral cortex",23,39.7
+"prog_fdr","Colon",10,17.2
+"prog_fdr","Heart muscle",5,8.6
+"prog_fdr","Liver",2,3.4
+"prog_fdr","Lung",4,6.9
+"prog_fdr","Skin",4,6.9
+"prog_fdr","Spleen",2,3.4
+"prog_fdr","Testis",7,12.1

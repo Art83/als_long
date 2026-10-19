@@ -1,0 +1,3 @@
+"model","n_sig","age_column"
+"sex_only",100,"Age_at_First_PBMC_Collection"
+"sex_plus_age",77,"Age_at_First_PBMC_Collection"

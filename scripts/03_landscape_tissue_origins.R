@@ -17,7 +17,6 @@ suppressPackageStartupMessages({
   library(limma)
   library(ggplot2)
   library(concordR)
-  library(here)
 })
 
 
@@ -34,7 +33,7 @@ annotation <- read.csv("../raw/somascan/documents/annotation.csv")
 grounding <- read.csv("../output/grounding/grounding_map.csv", stringsAsFactors = FALSE)
 progression <- read.csv("../output/grounding/progression_with_grounding.csv", stringsAsFactors = FALSE)
 
-grounding_dedup_path <- paste0(here(), "/output/grounding/grounding_dedup.rds")
+grounding_dedup_path <- "../output/grounding/grounding_dedup.rds"
 if (file.exists(grounding_dedup_path)) {
   grounding_dedup <- readRDS(grounding_dedup_path)
 } else {
@@ -179,7 +178,7 @@ if (nrow(stage_res)) {
   print(stage_res %>% arrange(p) %>% head(10) %>%
           dplyr::select(gene_symbol, covariate, r, p, p_fdr, dap_logFC) %>%
           mutate(across(where(is.numeric), ~ signif(.x, 3))), row.names = FALSE)
-  write.csv(stage_res, paste0(here(), "/output/feedback/fb_dap_stage_association.csv"), row.names = FALSE)
+  write.csv(stage_res, "../output/summaries/fb_dap_stage_association.csv", row.names = FALSE)
 }
 cat("\n")
 
@@ -442,6 +441,23 @@ cat("  DAPs specific/sparse with muscle in the IHC primary set:", nrow(dap_muscl
     sum(triage_dap$specificity %in% c("specific", "sparse")), "specific/sparse\n")
 cat("    ", paste(sort(unique(c(dap_muscle_top$gene_symbol, dap_muscle_primary$gene_symbol))), collapse = ", "), "\n\n")
 
+cat("  Top tissue counts, background (for the denominator):\n")
+bg_top <- dplyr::count(gs_bg, top_tissue, sort = TRUE) %>% mutate(pct = round(100 * n / sum(n), 1))
+print(head(bg_top, 10))
+cortex_cmp <- bind_rows(
+  gs_fdr %>% summarise(set = "prog_fdr", n = n(), cortex_top = sum(top_tissue == "Cerebral cortex")),
+  gs_dap %>% summarise(set = "dap",      n = n(), cortex_top = sum(top_tissue == "Cerebral cortex")),
+  gs_bg  %>% summarise(set = "background", n = n(), cortex_top = sum(top_tissue == "Cerebral cortex"))
+) %>% mutate(pct = round(100 * cortex_top / n, 1))
+cat("  Cortex as top presence tissue:\n"); print(cortex_cmp)
+ft_cortex <- fisher.test(matrix(c(cortex_cmp$cortex_top[1], cortex_cmp$n[1] - cortex_cmp$cortex_top[1],
+                                  cortex_cmp$cortex_top[3], cortex_cmp$n[3] - cortex_cmp$cortex_top[3]), 2))
+cat(sprintf("  Cortex-top, progression FDR vs background: OR = %.2f, p = %.3f\n\n", ft_cortex$estimate, ft_cortex$p.value))
+write.csv(bind_rows(gs_fdr %>% mutate(set = "prog_fdr"), gs_dap %>% mutate(set = "dap"), gs_bg %>% mutate(set = "background")) %>%
+            dplyr::count(set, top_tissue) %>% group_by(set) %>% mutate(pct = round(100 * n / sum(n), 1)) %>% ungroup(),
+          "../output/summaries/fb_top_tissue_by_set.csv", row.names = FALSE)
+
+
 write.csv(prof_fdr, "../output/landscape/tissue_profile_progression_fdr.csv", row.names = FALSE)
 write.csv(gs_fdr,   "../output/landscape/tissue_profile_gene_summary_fdr.csv", row.names = FALSE)
 write.csv(gs_nom,   "../output/landscape/tissue_profile_gene_summary_nominal.csv", row.names = FALSE)
@@ -474,6 +490,33 @@ prog_sig %>% left_join(triage_fdr %>% dplyr::select(gene_symbol, route), by = "g
   with(print(table(grounding_tier, route, useNA = "ifany")))
 cat("\n")
 
+# Hits by tier against the panel: are progression hits or DAPs enriched in any tier?
+tier_levels <- c("confirmed_full", "confirmed_partial", "rna_only_ms_gap",
+                 "ms_only_rna_gap", "no_mn_expression")
+panel_tiers <- grounding_dedup %>% filter(grounding_tier %in% tier_levels)
+
+tier_enrichment <- function(hit_uniprots, label) {
+  hit <- panel_tiers$uniprot %in% hit_uniprots
+  tab <- table(tier = factor(panel_tiers$grounding_tier, levels = tier_levels), hit = hit)
+  ft  <- fisher.test(tab, simulate.p.value = TRUE, B = 1e5)
+  conf <- panel_tiers$grounding_tier %in% c("confirmed_full", "confirmed_partial")
+  ft2  <- fisher.test(table(conf, hit))
+  cat(sprintf("  %s: %d unique hit proteins mapped to a tier | Fisher across 5 tiers p = %.3f | MN-confirmed (full+partial) vs rest: OR = %.2f (95%% CI %.2f-%.2f), p = %.3f\n",
+              label, sum(hit), ft$p.value, ft2$estimate, ft2$conf.int[1], ft2$conf.int[2], ft2$p.value))
+  print(round(100 * prop.table(tab, 2), 1))
+  data.frame(set = label, n_hit_proteins = sum(hit), fisher_5tier_p = ft$p.value,
+             confirmed_or = unname(ft2$estimate), confirmed_ci_lo = ft2$conf.int[1],
+             confirmed_ci_hi = ft2$conf.int[2], confirmed_p = ft2$p.value)
+}
+cat("\nTier enrichment of hits vs panel (unique proteins):\n")
+tier_enrich_tbl <- bind_rows(
+  tier_enrichment(unique(prog_sig$uniprot), "Progression FDR"),
+  tier_enrichment(unique(daps$uniprot[daps$sig %in% TRUE]), "DAPs")
+)
+write.csv(tier_enrich_tbl, "../output/summaries/fb_tier_enrichment.csv", row.names = FALSE)
+
+cat("\nUnique proteins: progression FDR", n_distinct(prog_sig$uniprot), "of", nrow(prog_sig), "aptamers |",
+    "DAPs", n_distinct(daps$uniprot[daps$sig %in% TRUE]), "of", sum(daps$sig, na.rm = TRUE), "aptamers\n\n")
 
 # ===================
 # E. DRUGGABILITY
@@ -664,7 +707,7 @@ daps %>% filter(sig) %>%
   dplyr::count(top_tissue, sort = TRUE) %>%
   write.csv("../output/summaries/fb_dap_tissue.csv", row.names = FALSE)
 
-write.csv(daps, "/output/landscape/daps_full.csv", row.names = FALSE)
+write.csv(daps, "../output/landscape/daps_full.csv", row.names = FALSE)
 
 gate_cols <- c("gene_symbol", "concordance", "route", "specificity", "primary_tissue", "call",
                "gene_class", "protein_tau", "tau", "localisation", "mechanism_tier")
