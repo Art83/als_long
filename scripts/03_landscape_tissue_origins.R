@@ -2,12 +2,20 @@
 #  03. ALS plasma biomarker set + tissue origin (external tool)
 #
 #  A) Cross-sectional DAPs (ALS vs Control, limma on baseline SomaScan)
+#     A2) Disease-stage association of the DAPs within ALS
 #  B) Full progression marker list
 #  C) concordR 0.2.0 gates: route, specificity, concordance, audit call
 #  C2) Protein presence vote in named nervous vs muscle contexts
 #  C3) Tissue-origin profile (entropy, P(top)) from the 59-tissue presence vote
-#  D) Grounding map overlay
+#  D) Grounding map overlay, tier enrichment of hits vs panel
 #  E) Druggability (DGIdb)
+#  F) Plots
+#  G) Save
+#
+#  Run from the scripts folder. All paths are relative to it.
+#  The SomaScan matrix is keyed by SeqId throughout. UniProt is carried as a column
+#  and never used as a column or row name, because 1,125 aptamers share an accession
+#  with another aptamer and name repair silently mangles duplicates.
 ################################################################################
 
 
@@ -19,9 +27,11 @@ suppressPackageStartupMessages({
   library(concordR)
 })
 
+dir.create("../output/landscape", showWarnings = FALSE, recursive = TRUE)
+dir.create("../output/summaries", showWarnings = FALSE, recursive = TRUE)
 
 cat("================================================================\n")
-cat("  01: ALS biomarjer landscape\n")
+cat("  03: ALS biomarker landscape\n")
 cat("================================================================\n\n")
 
 # ── 0. Load data ────────────────────────────────────────────────────────────
@@ -37,7 +47,7 @@ grounding_dedup_path <- "../output/grounding/grounding_dedup.rds"
 if (file.exists(grounding_dedup_path)) {
   grounding_dedup <- readRDS(grounding_dedup_path)
 } else {
-    grounding_dedup <- grounding %>%
+  grounding_dedup <- grounding %>%
     group_by(uniprot) %>%
     summarise(gene_symbol = gene_symbol[1],
               grounding_score = grounding_score[1],
@@ -48,10 +58,14 @@ if (file.exists(grounding_dedup_path)) {
 }
 
 misc_columns <- c("Barcode2d", "SubjectUID", "TimePoint")
-seq_cols     <- colnames(df)[!colnames(df) %in% misc_columns]
-uniprot_map  <- setNames(annotation$UniProt.ID, annotation$SeqId)
-colnames(df)[!colnames(df) %in% misc_columns] <- uniprot_map[seq_cols]
-df <- df[, !is.na(colnames(df)) & colnames(df) != ""]
+seq_map <- annotation %>%
+  dplyr::transmute(SeqId = as.character(SeqId), uniprot = as.character(UniProt.ID)) %>%
+  filter(SeqId %in% colnames(df), !is.na(uniprot), uniprot != "") %>%
+  distinct(SeqId, .keep_all = TRUE)
+df <- df[, c(misc_columns, seq_map$SeqId)]
+cat("  Aptamers with a UniProt accession:", nrow(seq_map),
+    "| unique accessions:", n_distinct(seq_map$uniprot),
+    "| accessions on more than one aptamer:", sum(duplicated(seq_map$uniprot)), "\n\n")
 
 
 # ============================
@@ -72,7 +86,6 @@ df_base <- df %>%
 
 cat("  ALS:", sum(df_base$SUBJECT_GROUP == "ALS"),
     " | Control:", sum(df_base$SUBJECT_GROUP == "Healthy Control"), "\n")
-
 
 meta_cols <- unique(c("Barcode2d", "GUID", "TimePoint", "SUBJECT_GROUP", "SEX", age_candidates))
 prot_cols <- setdiff(colnames(df_base), meta_cols)
@@ -95,7 +108,8 @@ run_limma_mat <- function(mat, design) {
   colnames(design)[2] <- "groupALS"          # 2nd column is always the ALS contrast
   fit <- limma::eBayes(limma::lmFit(mat, design))
   tt <- limma::topTable(fit, coef = "groupALS", number = Inf, sort.by = "none")
-  tt$uniprot <- rownames(tt)
+  tt$SeqId <- rownames(tt)
+  tt$uniprot <- seq_map$uniprot[match(tt$SeqId, seq_map$SeqId)]
   tt$sig <- !is.na(tt$adj.P.Val) & tt$adj.P.Val < 0.05
   tt$dir <- ifelse(tt$logFC > 0, "up_in_ALS", "down_in_ALS")
   tt
@@ -125,14 +139,15 @@ if (!is.na(pick_age)) {
   daps <- daps_sexonly
 }
 
-cat("  Total tested:", nrow(daps), " | DAPs:", sum(daps$sig, na.rm = TRUE), "\n")
+cat("  Total tested:", nrow(daps), " | DAPs:", sum(daps$sig, na.rm = TRUE),
+    "aptamers |", n_distinct(daps$uniprot[daps$sig %in% TRUE]), "unique proteins\n")
 cat("  Up:", sum(daps$sig & daps$dir == "up_in_ALS", na.rm = TRUE),
     " | Down:", sum(daps$sig & daps$dir == "down_in_ALS", na.rm = TRUE), "\n\n")
 
-# Disease-stage check on the DAPs. Controls have no ALSFRS-R, so case/control cannot
+# A2. Disease-stage check on the DAPs. Controls have no ALSFRS-R, so case/control cannot
 # be conditioned on stage directly. Instead, within ALS at baseline, we ask if a DAP
 # tracks baseline ALSFRS-R total or time since symptom onset.
-cat("-- Disease-stage association of DAPs within ALS\n\n")
+cat("-- A2. Disease-stage association of DAPs within ALS\n\n")
 
 fx_base <- read.csv("../raw/als-metadata/answerals/clinical/ALSFRS_R.csv") %>%
   filter(!is.na(alsfrst), !is.na(Visit_Date)) %>%
@@ -145,12 +160,12 @@ stage <- df_base %>%
   dplyr::select(GUID, all_of(intersect(c("AGE_AT_SYMPTOM_ONSET", "Age_at_First_PBMC_Collection"), colnames(df_base)))) %>%
   left_join(fx_base, by = "GUID") %>%
   mutate(duration_years = if (all(c("AGE_AT_SYMPTOM_ONSET", "Age_at_First_PBMC_Collection") %in% colnames(.)))
-           as.numeric(Age_at_First_PBMC_Collection) - as.numeric(AGE_AT_SYMPTOM_ONSET) else NA_real_)
+    as.numeric(Age_at_First_PBMC_Collection) - as.numeric(AGE_AT_SYMPTOM_ONSET) else NA_real_)
 
 cat("  ALS with baseline ALSFRS-R:", sum(!is.na(stage$alsfrs_base)),
     "| with duration since onset:", sum(!is.na(stage$duration_years)), "\n")
 
-dap_ids <- daps$uniprot[daps$sig %in% TRUE]
+dap_ids <- daps$SeqId[daps$sig %in% TRUE]
 stage_mat <- expr_mat[dap_ids, stage$GUID, drop = FALSE]
 
 stage_test <- function(y_name) {
@@ -160,7 +175,7 @@ stage_test <- function(y_name) {
     f <- summary(lm(x ~ y[ok]))$coefficients
     c(beta = f[2, 1], p = f[2, 4], r = cor(x, y[ok], use = "complete.obs"))
   }))
-  out <- data.frame(uniprot = rownames(res), covariate = y_name, res, row.names = NULL)
+  out <- data.frame(SeqId = rownames(res), covariate = y_name, res, row.names = NULL)
   out$p_fdr <- p.adjust(out$p, method = "fdr")
   out
 }
@@ -168,15 +183,15 @@ stage_res <- bind_rows(stage_test("alsfrs_base"), stage_test("duration_years"))
 
 if (nrow(stage_res)) {
   stage_res <- stage_res %>%
-    left_join(grounding_dedup %>% dplyr::select(uniprot, gene_symbol), by = "uniprot") %>%
-    left_join(daps %>% dplyr::select(uniprot, dap_logFC = logFC), by = "uniprot")
+    left_join(daps %>% dplyr::select(SeqId, uniprot, dap_logFC = logFC), by = "SeqId") %>%
+    left_join(grounding_dedup %>% dplyr::select(uniprot, gene_symbol), by = "uniprot")
   cat("  DAPs associated with stage within ALS (FDR < 0.05 across the DAP set):\n")
   print(stage_res %>% group_by(covariate) %>%
           summarise(n_dap = n(), n_nominal = sum(p < 0.05), n_fdr = sum(p_fdr < 0.05),
                     median_abs_r = round(median(abs(r)), 3), .groups = "drop"))
   cat("  Strongest stage associations:\n")
   print(stage_res %>% arrange(p) %>% head(10) %>%
-          dplyr::select(gene_symbol, covariate, r, p, p_fdr, dap_logFC) %>%
+          dplyr::select(gene_symbol, SeqId, covariate, r, p, p_fdr, dap_logFC) %>%
           mutate(across(where(is.numeric), ~ signif(.x, 3))), row.names = FALSE)
   write.csv(stage_res, "../output/summaries/fb_dap_stage_association.csv", row.names = FALSE)
 }
@@ -192,7 +207,8 @@ cat("-- B. Progression markers\n\n")
 prog_sig <- progression %>% filter(p_fdr < 0.05) %>% arrange(p_value)
 prog_nom <- progression %>% filter(p_value < 0.05) %>% arrange(p_value)
 
-cat("  FDR < 0.05:", nrow(prog_sig), " | Nominal:", nrow(prog_nom), "\n")
+cat("  FDR < 0.05:", nrow(prog_sig), "aptamers |", n_distinct(prog_sig$uniprot), "unique proteins",
+    " | Nominal:", nrow(prog_nom), "\n")
 prog_sig %>% head(10) %>%
   dplyr::select(uniprot, gene_symbol, cor_r, p_value, p_fdr, grounding_score) %>%
   as.data.frame() %>% print(row.names = FALSE)
@@ -202,7 +218,6 @@ cat("\n")
 # =================================
 # C. concordR 0.2.0 GATES (route, specificity, concordance, audit call)
 # =================================
-
 
 cat("-- C. concordR gates (plasma, systemic)\n\n")
 cat("  concordR version:", as.character(packageVersion("concordR")), "\n")
@@ -256,7 +271,7 @@ gate_tbl <- bind_rows(gate_summary(triage_dap, "dap"), gate_summary(triage_fdr, 
 cat("  Gate summary (% of genes in each set):\n"); print(gate_tbl, row.names = FALSE); cat("\n")
 write.csv(gate_tbl, "../output/summaries/fb_concordr_gates.csv", row.names = FALSE)
 
-# Enrichment of the intracellular (damage release) route vs background: the replacement
+# Enrichment of the intracellular (damage release) route vs background.
 # OR < 1 = markers are LESS damage-release than background.
 route_or <- function(tr, bg, label) {
   a <- sum(tr$route == "intracellular"); b <- sum(regulated(tr))
@@ -334,7 +349,7 @@ ctx_fdr_wide <- ctx_fdr %>%
   tidyr::pivot_wider(names_from = context_tissue, values_from = tissue)
 write.csv(ctx_fdr_wide, "../output/landscape/context_presence_progression_fdr.csv", row.names = FALSE)
 
-# Fisher: detected in skeletal muscle vs cortex, markers vs background
+# Fisher: detected in each context tissue, markers vs background
 ctx_fisher <- function(ctx_set, ctx_bg, tissue_name, label) {
   a <- sum(ctx_set$detected_any[ctx_set$context_tissue == tissue_name])
   b <- sum(ctx_set$context_tissue == tissue_name) - a
@@ -441,6 +456,7 @@ cat("  DAPs specific/sparse with muscle in the IHC primary set:", nrow(dap_muscl
     sum(triage_dap$specificity %in% c("specific", "sparse")), "specific/sparse\n")
 cat("    ", paste(sort(unique(c(dap_muscle_top$gene_symbol, dap_muscle_primary$gene_symbol))), collapse = ", "), "\n\n")
 
+# background top-tissue distribution, so the "cortex is the top tissue" count has a denominator
 cat("  Top tissue counts, background (for the denominator):\n")
 bg_top <- dplyr::count(gs_bg, top_tissue, sort = TRUE) %>% mutate(pct = round(100 * n / sum(n), 1))
 print(head(bg_top, 10))
@@ -456,7 +472,6 @@ cat(sprintf("  Cortex-top, progression FDR vs background: OR = %.2f, p = %.3f\n\
 write.csv(bind_rows(gs_fdr %>% mutate(set = "prog_fdr"), gs_dap %>% mutate(set = "dap"), gs_bg %>% mutate(set = "background")) %>%
             dplyr::count(set, top_tissue) %>% group_by(set) %>% mutate(pct = round(100 * n / sum(n), 1)) %>% ungroup(),
           "../output/summaries/fb_top_tissue_by_set.csv", row.names = FALSE)
-
 
 write.csv(prof_fdr, "../output/landscape/tissue_profile_progression_fdr.csv", row.names = FALSE)
 write.csv(gs_fdr,   "../output/landscape/tissue_profile_gene_summary_fdr.csv", row.names = FALSE)
@@ -475,11 +490,11 @@ cat("-- D. Grounding overlay\n\n")
 
 dap_grounding <- daps %>% filter(sig) %>% left_join(grounding_dedup, by = "uniprot")
 
-cat("DAPs by grounding tier:\n")
+cat("DAPs by grounding tier (aptamers):\n")
 dap_grounding %>% dplyr::count(grounding_tier) %>% mutate(pct = round(n / sum(n) * 100, 1)) %>%
   as.data.frame() %>% print(row.names = FALSE)
 
-cat("\nProgression (FDR) by grounding tier:\n")
+cat("\nProgression (FDR) by grounding tier (aptamers):\n")
 prog_sig %>% dplyr::count(grounding_tier) %>% mutate(pct = round(n / sum(n) * 100, 1)) %>%
   as.data.frame() %>% print(row.names = FALSE)
 cat("\n")
@@ -490,7 +505,16 @@ prog_sig %>% left_join(triage_fdr %>% dplyr::select(gene_symbol, route), by = "g
   with(print(table(grounding_tier, route, useNA = "ifany")))
 cat("\n")
 
-# Hits by tier against the panel: are progression hits or DAPs enriched in any tier?
+cat("MN-confirmed progression markers (FDR set):\n")
+prog_sig %>% filter(grounding_tier %in% c("confirmed_full", "confirmed_partial")) %>%
+  left_join(triage_fdr %>% dplyr::select(gene_symbol, route, specificity), by = "gene_symbol") %>%
+  dplyr::select(gene_symbol, uniprot, cor_r, p_fdr, grounding_tier, route, specificity) %>%
+  mutate(across(where(is.numeric), ~ signif(.x, 3))) %>%
+  as.data.frame() %>% print(row.names = FALSE)
+cat("\n")
+
+# Hits by tier against the panel, counted as unique proteins: are progression hits or
+# DAPs enriched or depleted in any tier? Column % = share of hits vs share of panel.
 tier_levels <- c("confirmed_full", "confirmed_partial", "rna_only_ms_gap",
                  "ms_only_rna_gap", "no_mn_expression")
 panel_tiers <- grounding_dedup %>% filter(grounding_tier %in% tier_levels)
@@ -508,7 +532,7 @@ tier_enrichment <- function(hit_uniprots, label) {
              confirmed_or = unname(ft2$estimate), confirmed_ci_lo = ft2$conf.int[1],
              confirmed_ci_hi = ft2$conf.int[2], confirmed_p = ft2$p.value)
 }
-cat("\nTier enrichment of hits vs panel (unique proteins):\n")
+cat("Tier enrichment of hits vs panel (unique proteins):\n")
 tier_enrich_tbl <- bind_rows(
   tier_enrichment(unique(prog_sig$uniprot), "Progression FDR"),
   tier_enrichment(unique(daps$uniprot[daps$sig %in% TRUE]), "DAPs")
@@ -516,7 +540,10 @@ tier_enrich_tbl <- bind_rows(
 write.csv(tier_enrich_tbl, "../output/summaries/fb_tier_enrichment.csv", row.names = FALSE)
 
 cat("\nUnique proteins: progression FDR", n_distinct(prog_sig$uniprot), "of", nrow(prog_sig), "aptamers |",
-    "DAPs", n_distinct(daps$uniprot[daps$sig %in% TRUE]), "of", sum(daps$sig, na.rm = TRUE), "aptamers\n\n")
+    "DAPs", n_distinct(daps$uniprot[daps$sig %in% TRUE]), "of", sum(daps$sig, na.rm = TRUE), "aptamers\n")
+cat("Unmapped to a gene: progression FDR", sum(is.na(prog_sig$gene_symbol)), "|",
+    "DAPs", sum(is.na(dap_grounding$gene_symbol)), "\n\n")
+
 
 # ===================
 # E. DRUGGABILITY
@@ -524,23 +551,20 @@ cat("\nUnique proteins: progression FDR", n_distinct(prog_sig$uniprot), "of", nr
 
 cat("-- E. Druggability\n\n")
 
-dgidb_candidates <- "../raw/interactions.tsv"
-
-dgidb_hits <- dgidb_candidates[file.exists(dgidb_candidates)]
-dgidb_path <- if (length(dgidb_hits)) dgidb_hits[1] else dgidb_candidates[1]
+dgidb_path <- "../raw/interactions.tsv"
 
 if (file.exists(dgidb_path)) {
   dgidb <- read.delim(dgidb_path, stringsAsFactors = FALSE)
   drug_targets <- unique(dgidb$gene_name)
   cat("  DGIdb:", nrow(dgidb), "interactions |", length(drug_targets), "targets |", basename(dgidb_path), "\n")
-
+  
   dap_druggable  <- dap_grounding %>% mutate(druggable = gene_symbol %in% drug_targets)
   prog_druggable <- prog_sig %>% mutate(druggable = gene_symbol %in% drug_targets)
   cat("  DAPs druggable:", sum(dap_druggable$druggable, na.rm = TRUE), "/", nrow(dap_druggable),
       "aptamers (", n_distinct(dap_druggable$uniprot[dap_druggable$druggable]), "unique proteins )\n")
   cat("  Progression druggable:", sum(prog_druggable$druggable, na.rm = TRUE), "/", nrow(prog_druggable),
       "aptamers (", n_distinct(prog_druggable$uniprot[prog_druggable$druggable]), "unique proteins )\n")
-
+  
   cat("\n  Druggable progression markers with concordR gates:\n")
   drug_prog <- prog_druggable %>%
     filter(druggable) %>%
@@ -607,7 +631,7 @@ ctx_tbl %>% filter(set %in% set_levels) %>%
   theme_bw() + theme(axis.text.x = element_text(angle = 20, hjust = 1), legend.position = "top")
 dev.off()
 
-# F4. Volcano with grounding (unchanged)
+# F4. Volcano with grounding
 tiff("../output/landscape/volcano_grounding.tiff", width = 7, height = 6, units = "in", res = 300)
 volcano_data <- daps %>%
   left_join(grounding_dedup, by = "uniprot") %>%
@@ -625,7 +649,7 @@ ggplot(volcano_data, aes(x = logFC, y = -log10(adj.P.Val))) +
   theme_bw()
 dev.off()
 
-# F5. Grounding DAPs vs all (unchanged)
+# F5. Grounding DAPs vs all
 tiff("../output/landscape/grounding_dap_vs_all.tiff", width = 5, height = 4, units = "in", res = 300)
 bind_rows(
   dap_grounding %>% filter(!is.na(grounding_score)) %>% dplyr::count(grounding_score) %>%
@@ -685,13 +709,13 @@ known_markers <- c("NEFL","NEFH","NEFM","GFAP","UCHL1","CHIT1","CHI3L1","CHI3L2"
                    "TARDBP","SOD1","FUS","STMN2","PVALB","MMP9","KLK6")
 km <- grounding_dedup %>% filter(gene_symbol %in% known_markers) %>%
   dplyr::select(gene_symbol, uniprot, grounding_tier) %>%
-  left_join(daps %>% dplyr::select(uniprot, dap_logFC = logFC, dap_p = P.Value,
+  left_join(daps %>% dplyr::select(uniprot, SeqId, dap_logFC = logFC, dap_p = P.Value,
                                    dap_fdr = adj.P.Val, dap_sig = sig), by = "uniprot") %>%
-  left_join(progression %>% dplyr::select(uniprot, prog_cor = cor_r, prog_p = p_value,
-                                          prog_fdr = p_fdr), by = "uniprot") %>%
+  left_join(progression %>% dplyr::select(SeqId, prog_cor = cor_r, prog_p = p_value,
+                                          prog_fdr = p_fdr), by = "SeqId") %>%
   left_join(triage_bg %>% dplyr::select(gene_symbol, route, specificity, primary_tissue, call), by = "gene_symbol") %>%
-  arrange(gene_symbol)
-cat("-- Known-marker landscape:\n"); print(as.data.frame(km), row.names = FALSE); cat("\n")
+  arrange(gene_symbol, SeqId)
+cat("-- Known-marker landscape (one row per aptamer):\n"); print(as.data.frame(km), row.names = FALSE); cat("\n")
 write.csv(km, "../output/summaries/fb_known_marker_landscape.csv", row.names = FALSE)
 
 write.csv(data.frame(
@@ -700,7 +724,7 @@ write.csv(data.frame(
   age_column = ifelse(is.na(pick_age), "none", pick_age)
 ), "../output/summaries/fb_dap_age_effect.csv", row.names = FALSE)
 
-# DAP tissue table: top presence tissue and the IHC primary set, both stated
+# DAP tissue table: top presence tissue
 daps %>% filter(sig) %>%
   left_join(grounding_dedup %>% dplyr::select(uniprot, gene_symbol), by = "uniprot") %>%
   left_join(gs_dap %>% dplyr::select(gene_symbol, top_tissue, top_prob), by = "gene_symbol") %>%
@@ -714,7 +738,8 @@ gate_cols <- c("gene_symbol", "concordance", "route", "specificity", "primary_ti
 dap_out <- daps %>% filter(sig) %>%
   left_join(grounding_dedup, by = "uniprot") %>%
   left_join(triage_dap %>% dplyr::select(any_of(gate_cols)), by = "gene_symbol") %>%
-  left_join(gs_dap %>% dplyr::select(gene_symbol, top_tissue, top_prob, entropy_norm), by = "gene_symbol")
+  left_join(gs_dap %>% dplyr::select(gene_symbol, top_tissue, top_prob, entropy_norm), by = "gene_symbol") %>%
+  arrange(adj.P.Val)
 write.csv(dap_out, "../output/landscape/daps_annotated.csv", row.names = FALSE)
 
 prog_out <- prog_nom %>%
@@ -736,5 +761,4 @@ prog_sig %>% head(15) %>%
   mutate(across(where(is.numeric), ~ signif(.x, 3))) %>%
   write.csv("../output/summaries/fb_progression_top15_annotated.csv", row.names = FALSE)
 
-cat("  All outputs saved to output/landscape/\n")
 cat("\n== SCRIPT 03 COMPLETE ==\n")

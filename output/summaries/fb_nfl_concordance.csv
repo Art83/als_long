@@ -1,0 +1,2 @@
+"n_matched","n_subjects","pearson_r","pearson_p","spearman_rho","spearman_p","baseline_n","baseline_r","baseline_p","within_n","within_r","within_p","sd_log2_immunoassay","sd_log2_aptamer"
+763,241,0.0784211633733527,0.030313477529845,0.0991441104952229,0.00612768827558334,241,0.0267810439821843,0.679118544259813,228,-0.0182878104443452,0.783588916502451,0.902070539966315,0.381399758531568

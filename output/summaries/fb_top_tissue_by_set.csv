@@ -37,16 +37,16 @@
 "background","Stomach",109,1.8
 "background","Testis",497,8.2
 "background","Tonsil",2,0
-"dap","Cerebral cortex",19,32.2
-"dap","Cervix",1,1.7
-"dap","Colon",11,18.6
-"dap","Esophagus",1,1.7
-"dap","Heart muscle",12,20.3
-"dap","Liver",2,3.4
-"dap","Lung",3,5.1
-"dap","Salivary gland",1,1.7
-"dap","Skin",3,5.1
-"dap","Testis",6,10.2
+"dap","Cerebral cortex",20,31.7
+"dap","Cervix",1,1.6
+"dap","Colon",12,19
+"dap","Esophagus",1,1.6
+"dap","Heart muscle",12,19
+"dap","Liver",2,3.2
+"dap","Lung",3,4.8
+"dap","Salivary gland",1,1.6
+"dap","Skin",4,6.3
+"dap","Testis",7,11.1
 "prog_fdr","Adrenal gland",1,1.7
 "prog_fdr","Cerebral cortex",23,39.7
 "prog_fdr","Colon",10,17.2
