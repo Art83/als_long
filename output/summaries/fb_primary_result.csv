@@ -1,0 +1,4 @@
+"term","beta","p_value"
+"naive_grounding_score",0.00216921359659039,0.000667037573134869
+"controlled_grounding_score",0.000923675587886349,0.146755239900658
+"permutation_grounding_score",0.000923675587886349,0.1275
