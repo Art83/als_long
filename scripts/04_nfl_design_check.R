@@ -310,7 +310,7 @@ cat("    buffer wells:", nrow(buf), "| participant samples:", nrow(ps_raw),
 B <- sapply(buf[, seq_cols], as.numeric)
 X <- sapply(ps_raw[, seq_cols], as.numeric)
 b_med <- apply(B, 2, median, na.rm = TRUE)
-elod <- b_med + 3.3 * apply(B, 2, mad, na.rm = TRUE)   # SomaDataIO::calc_eLOD definition
+elod <- b_med + 3.3 * apply(B, 2, mad, na.rm = TRUE)   # comes from SomaDataIO. Technical notes don't have this.
 x_med <- apply(X, 2, median, na.rm = TRUE)
 
 floor_tbl <- data.frame(SeqId = seq_cols, buffer_median = b_med, elod = elod,
