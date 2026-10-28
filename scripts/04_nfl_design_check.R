@@ -15,8 +15,6 @@ suppressPackageStartupMessages({
   library(ggplot2)
 })
 
-dir.create("../output/nfl_check", showWarnings = FALSE, recursive = TRUE)
-dir.create("../output/summaries", showWarnings = FALSE, recursive = TRUE)
 source("00_visit_time.R")
 
 cat("================================================================\n")
@@ -25,9 +23,9 @@ cat("================================================================\n\n")
 
 # --- 0. Panel (UniProt-keyed, pre-specified) ---------------------------
 panel <- c(
-  NEFL   = "P07196",   # neurofilament light  -- expect flat within-person on the aptamer
-  NEFH   = "P12036",   # neurofilament heavy
-  MMP9   = "P14780",   # MN-absent comparator; nominal in 02 (p = 0.010, FDR 0.32)
+  NEFL = "P07196",   # neurofilament light
+  NEFH = "P12036",   # neurofilament heavy
+  MMP9 = "P14780",   # MN-absent comparator; nominal in 02 (p = 0.010, FDR 0.32)
   CLEC3B = "P05452",   # top slope-tracking hit  -- positive control, dynamic
   ANTXR2 = "P58335"    # top slope-tracking hit  -- positive control, dynamic
 )
@@ -294,6 +292,48 @@ if (length(nfl_seq) == 1 && !is.na(nfl_seq)) {
 }
 cat("\n")
 
+# --- 7aditional. Aptamer signal against the assay floor ----------------
+# Buffers carry no ANML normalisation, so buffers and samples are compared on
+# unnormalised RFU from the same run.
+cat("  7.Additonal analysis. Aptamer signal against buffer (blank) wells\n")
+tc_raw <- read.csv("../raw/somascan/unnormalized/csv/SS-2342615_v4.1__AALS-v1.0-tech-control-samples.csv",
+                   check.names = FALSE)
+ps_raw <- read.csv("../raw/somascan/unnormalized/csv/SS-2342615_v4.1__AALS-v1.0-participant-samples.csv",
+                   check.names = FALSE)
+if (!"SampleType" %in% colnames(tc_raw)) stop("SampleType column not found in tech-control file")
+
+buf <- tc_raw %>% filter(SampleType == "Buffer")
+seq_cols <- intersect(grep("^[0-9]+-[0-9]+$", colnames(ps_raw), value = TRUE), colnames(buf))
+cat("    buffer wells:", nrow(buf), "| participant samples:", nrow(ps_raw),
+    "| aptamers:", length(seq_cols), "\n")
+
+B <- sapply(buf[, seq_cols], as.numeric)
+X <- sapply(ps_raw[, seq_cols], as.numeric)
+b_med <- apply(B, 2, median, na.rm = TRUE)
+elod <- b_med + 3.3 * apply(B, 2, mad, na.rm = TRUE)   # SomaDataIO::calc_eLOD definition
+x_med <- apply(X, 2, median, na.rm = TRUE)
+
+floor_tbl <- data.frame(SeqId = seq_cols, buffer_median = b_med, elod = elod,
+                        sample_median = x_med, ratio_to_buffer = x_med / b_med,
+                        pct_above_elod = 100 * colMeans(sweep(X, 2, elod, ">"), na.rm = TRUE),
+                        stringsAsFactors = FALSE)
+floor_tbl$ratio_percentile <- 100 * rank(floor_tbl$ratio_to_buffer) / nrow(floor_tbl)
+
+floor_panel <- panel_map %>% dplyr::select(gene, SeqId) %>% inner_join(floor_tbl, by = "SeqId")
+print(floor_panel %>% mutate(across(where(is.numeric), ~ signif(.x, 3))), row.names = FALSE)
+cat(sprintf("    panel-wide median: %.1f%% of samples above eLOD, sample/buffer ratio %.2f\n\n",
+            median(floor_tbl$pct_above_elod), median(floor_tbl$ratio_to_buffer)))
+write.csv(floor_tbl, "../output/summaries/fb_somascan_buffer_floor.csv", row.names = FALSE)
+
+tiff("../output/nfl_check/somascan_signal_vs_buffer.tiff", width = 5.5, height = 4, units = "in", res = 300)
+print(ggplot(floor_tbl, aes(log2(ratio_to_buffer))) +
+        geom_histogram(bins = 80, fill = "grey70") +
+        geom_vline(data = floor_panel, aes(xintercept = log2(ratio_to_buffer), colour = gene)) +
+        labs(x = "log2 (median sample RFU / median buffer RFU)", y = "Aptamers", colour = "") +
+        theme_bw())
+dev.off()
+
+
 # ------ 7b/7c. The two designs on the immunoassay ------------------------------------
 cat("  7b/7c. Baseline-prognostic and slope designs on immunoassay NfL\n")
 ia_res_all <- run_designs(ia_long, ia_base, "NEFL_immunoassay_allALS")
@@ -476,6 +516,9 @@ if (!is.null(dyn_fu) && !is.null(pt)) {
   print(as.data.frame(fu_tbl), row.names = FALSE); cat("\n")
   write.csv(fu_tbl, "../output/summaries/fb_nfl_plateau_followup_only.csv", row.names = FALSE)
 }
+
+
+
 
 # --- 8. Combined verdict ----------------
 cat("-- Combined verdict ------------------------------------------------\n")
