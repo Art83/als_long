@@ -9,7 +9,9 @@ The code:
 2. Tests whether that map predicts which plasma proteins track ALSFRS-R decline.
 3. Characterises the route to plasma and tissue distribution of the proteins that do.
 4. Benchmarks the SomaScan NEFL aptamer against a serum NfL immunoassay.
-5. Validate the findings in Target ALS datasets
+5. Characterises how plasma markers track decline in different strata (based on progression of ALS)
+6. Profile fast vs slow progressors
+7. Validate the findings in Target ALS datasets (MS and Olink)
 
 **The answer** is that iPSC-derived motor neurons, on their own, do not model ALS progression as it is measurable in patients, and that any attempt to connect a motor neuron phenotype to the clinical trajectory will have to go through the periphery. If the clinically meaningful signal (that tracks decline in patients) is made in periphery and reaches blood by secretion and shedding, then a motor neuron culture is disconnected from that signal by construction.
 
@@ -19,6 +21,8 @@ Specifically:
 3. The progression markers are secreted and membrane proteins with no explicit tissue signature. 
 4. The cross-sectional signature is muscle-weighted and reflects severity rather than disease-specific signature. 
 5. NfL is prognostic at baseline but its within-person change does not track the rate of decline.
+6. Biomarkers in plasms track functional decline across slow, mid but not fast progressors
+7. Fast progressors have shorter symptom duration, faster rate of decline,higher baseline NfL. This group is potentially enriched for C9orf72 (Not enough N to give definitive answer)
 
 ## Layout for reproducibility
 
@@ -79,26 +83,35 @@ Rscript 02_progression.R              > ../output/02_console.txt 2>&1
 Rscript 02b_external_abundance.R      > ../output/02b_console.txt 2>&1
 Rscript 03_landscape_tissue_origins.R > ../output/03_console.txt 2>&1
 Rscript 04_nfl_design_check.R         > ../output/04_console.txt 2>&1
-Rscript 05_target_als_replication.R   > ../output/05_console.txt 2>&1
+Rscript 05_target_als_replication_biomarkers.R   > ../output/05_console.txt 2>&1
+Rscript 06_fast_vs_slow_progressors.R > ../output/06_console.txt
+Rscript 07_fast_progressor_clinical.R > ../output/07_console.txt
+Rscript 08_target_als_validation_progressors.R > ../output/08_console.txt
 ```
 
 `00_visit_time.R` is sourced by 02 and 04 and is not run on its own. Script 02 fits a random slope model per aptamer and runs on all available cores minus one (socket cluster on Windows, fork elsewhere), and takes the longest. The permutation test in 02 is seeded (`set.seed(42)`).
 
 ## Scripts
 
-**00_visit_time.R.** Draw timing. The SomaScan `TimePoint` column is the study visit number, not the rank of a participant's ALSFRS-R assessments. `soma_visit_time()` builds a GUID by visit table from the plasma collection date in `Plasma_Sample.csv`, with the same-visit ALSFRS-R date as fallback, and `attach_soma_time()` joins it to the SomaScan rows.
+**00_visit_time.R.* Helper.Draw timing. The SomaScan `TimePoint` column is the study visit number, not the rank of a participant's ALSFRS-R assessments. `soma_visit_time()` builds a GUID by visit table from the plasma collection date in `Plasma_Sample.csv`, with the same-visit ALSFRS-R date as fallback, and `attach_soma_time()` joins it to the SomaScan rows.
 
-**01_grounding_map.R.** The grounding map. Every SomaScan aptamer with a UniProt accession is mapped to a gene symbol and Ensembl ID through org.Hs.eg.db. Transcript detection comes from DESeq2 variance-stabilised RNA-seq of the motor neuron lines (five or more counts in at least 20% of lines and mean VST above the 10th percentile). Protein detection comes from the pre-batch correction MS matrix. The imputed matrix supplies abundance ranks only. Promoter accessibility comes from ATAC peaks within 2 kb of a TSS (ChIPseeker, hg38), detected at more than five counts in at least 20% of lines. Threshold sensitivity for both the protein and transcript rules, including edgeR filterByExpr, is written to `output/summaries/` and `output/tables/`.
+**01_grounding_map.R** The grounding map. Every SomaScan aptamer with a UniProt accession is mapped to a gene symbol and Ensembl ID through org.Hs.eg.db. Transcript detection comes from DESeq2 variance-stabilised RNA-seq of the motor neuron lines (five or more counts in at least 20% of lines and mean VST above the 10th percentile). Protein detection comes from the pre-batch correction MS matrix. The imputed matrix supplies abundance ranks only. Promoter accessibility comes from ATAC peaks within 2 kb of a TSS (ChIPseeker, hg38), detected at more than five counts in at least 20% of lines. Threshold sensitivity for both the protein and transcript rules, including edgeR filterByExpr, is written to `output/summaries/` and `output/tables/`.
 
-**02_progression.R.** Does grounding predict progression tracking? ALSFRS-R trajectories are modelled with a random intercept and slope per patient and each patient's decline rate is the BLUP slope. For each aptamer, per-patient slopes of log2 RFU on time are estimated by the same model in patients with two or more dated draws, and the protein slope is regressed on the ALSFRS-R slope. The absolute correlation is then regressed on grounding score, naive and adjusted for baseline signal and its CV, with a permutation null, and the transcript-positive aptamers are split by protein confirmation.
+**02_progression.R** Does grounding predict progression tracking? ALSFRS-R trajectories are modelled with a random intercept and slope per patient and each patient's decline rate is the BLUP slope. For each aptamer, per-patient slopes of log2 RFU on time are estimated by the same model in patients with two or more dated draws, and the protein slope is regressed on the ALSFRS-R slope. The absolute correlation is then regressed on grounding score, naive and adjusted for baseline signal and its CV, with a permutation null, and the transcript-positive aptamers are split by protein confirmation.
 
-**02b_external_abundance.R.** Plasma abundance re-adjustment using external dataset. Supp script for script 02. 
+**02b_external_abundance.R** Plasma abundance re-adjustment using external dataset. Supp script for script 02. 
 
-**03_landscape_tissue_origins.R.** What the hits are? Cross-sectional differential abundance at baseline (limma, sex and age adjusted) and within-ALS association of each DAP with baseline ALSFRS-R and disease duration. concordR gates on the progression and differential sets against the whole panel as background, route to plasma, tissue specificity, concordance and audit call, presence votes in named tissues, and a 59-tissue presence profile summarised as normalised entropy and the probability of the top tissue. Grounding tier overlay with a Fisher test of hits by tier against the panel, counted as unique proteins.
+**03_landscape_tissue_origins.R** What the hits are? Cross-sectional differential abundance at baseline (limma, sex and age adjusted) and within-ALS association of each DAP with baseline ALSFRS-R and disease duration. concordR gates on the progression and differential sets against the whole panel as background, route to plasma, tissue specificity, concordance and audit call, presence votes in named tissues, and a 59-tissue presence profile summarised as normalised entropy and the probability of the top tissue. Grounding tier overlay with a Fisher test of hits by tier against the panel, counted as unique proteins.
 
-**04_nfl_design_check.R.** NfL. A pre-specified panel is run through the slope design and the conventional baseline-prognostic design. The serum NfL immunoassay is then benchmarked against the aptamer at matched draws, and run through both designs itself, with tertiles of baseline NfL against ALSFRS-R slope.
+**04_nfl_design_check.R** NfL. A pre-specified panel is run through the slope design and the conventional baseline-prognostic design. The serum NfL immunoassay is then benchmarked against the aptamer at matched draws, and run through both designs itself, with tertiles of baseline NfL against ALSFRS-R slope.
 
-**05_target_als_replication.** Does the findings replicate in external cohort? Cross-sectional ALS vs control at baseline on each platform and ALSFRS-R BLUP slopes, per-protein BLUP slopes on each platform.
+**05_target_als_replication_biomarkers.R** Does the findings replicate in external cohort? Cross-sectional ALS vs control at baseline on each platform and ALSFRS-R BLUP slopes, per-protein BLUP slopes on each platform.
+
+**06_fast_vs_slow_progressors.R** Does the plasma panel (72 proteins) show identical performance in tertiles of patients divided into slow, mid and fast progressors 
+
+**07_fast_progressor_clinical.R** Profiling fast progressors.
+
+**08_target_als_validation_progressors.R** Do the fidings in progressors arm replicate in external cohort?
 
 ## Note on annotations
 
