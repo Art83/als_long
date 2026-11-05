@@ -1,7 +1,5 @@
 ################################################################################
-#  04. NfL design-scope check + immunoassay benchmark
-#
-#  Purpose: attribute the script-02 null for the SomaScan NEFL aptamer correctly.
+#  NfL design-scope check + immunoassay benchmark
 #
 #  Part I (aptamer panel; NfL primary, dynamic top hits as positive controls):
 #  Part II (serum NfL by Siemens Atellica immunoassay, raw/NfL/)
@@ -175,13 +173,13 @@ if (length(nfl_seq) == 1 && !is.na(nfl_seq)) {
   tj <- aptamer_long(nfl_seq)
   tiff("../output/nfl_check/nfl_aptamer_trajectories.tiff", width = 5, height = 4, units = "in", res = 300)
   print(ggplot(tj, aes(time_years, value, group = GUID)) + geom_line(alpha = 0.25) +
-          labs(x = "Years from first draw", y = "NfL aptamer (log2 RFU)") + theme_bw())
+          labs(x = "Years from first draw", y = "NEFL aptamer (log2 RFU)") + theme_bw())
   dev.off()
   bb <- aptamer_base(nfl_seq) %>% inner_join(als_slopes, by = "GUID")
   tiff("../output/nfl_check/nfl_aptamer_baseline_prognostic.tiff", width = 5, height = 4, units = "in", res = 300)
   print(ggplot(bb, aes(base_value, ALSFRS_slope)) + geom_point(alpha = 0.4) +
           geom_smooth(method = "lm", se = TRUE, color = "red") +
-          labs(x = "Baseline NfL aptamer (log2 RFU)", y = "ALSFRS-R slope (points/yr)") + theme_bw())
+          labs(x = "Baseline NEFL aptamer (log2 RFU)", y = "ALSFRS-R slope (points/yr)") + theme_bw())
   dev.off()
 }
 
@@ -285,14 +283,14 @@ if (length(nfl_seq) == 1 && !is.na(nfl_seq)) {
   tiff("../output/nfl_check/nfl_aptamer_vs_immunoassay.tiff", width = 5, height = 4.5, units = "in", res = 300)
   print(ggplot(matched, aes(value, apt)) + geom_point(alpha = 0.4) +
           geom_smooth(method = "lm", se = TRUE, color = "red") +
-          labs(x = "Serum NfL immunoassay (log2 pg/mL)", y = "Plasma NfL aptamer (log2 RFU)",
+          labs(x = "Serum NfL immunoassay (log2 pg/mL)", y = "Plasma NEFL aptamer (log2 RFU)",
                subtitle = sprintf("Pearson r = %.2f, Spearman rho = %.2f, n = %d draws", r_p$estimate, r_s$estimate, nrow(matched))) +
           theme_bw())
   dev.off()
 }
 cat("\n")
 
-# --- 7aditional. Aptamer signal against the assay floor ----------------
+# --- 7additional. Aptamer signal against the assay floor ----------------
 # Buffers carry no ANML normalisation, so buffers and samples are compared on
 # unnormalised RFU from the same run.
 cat("  7.Additonal analysis. Aptamer signal against buffer (blank) wells\n")
@@ -338,8 +336,7 @@ dev.off()
 cat("  7b/7c. Baseline-prognostic and slope designs on immunoassay NfL\n")
 ia_res_all <- run_designs(ia_long, ia_base, "NEFL_immunoassay_allALS")
 
-# same-subject comparison: restrict to the patients who entered the aptamer designs,
-# so the aptamer-vs-immunoassay contrast is not a sample-size artefact
+# same-subject comparison
 apt_base_guids <- intersect(soma_base$GUID, als_slopes$GUID)
 ia_res_same <- run_designs(ia_long %>% filter(GUID %in% guids_long),
                            ia_base %>% filter(GUID %in% apt_base_guids),

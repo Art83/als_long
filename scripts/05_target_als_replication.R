@@ -1,10 +1,8 @@
 ################################################################################
-#  05. External replication in Target ALS (Natural History Study)
+#  External replication in Target ALS (NHS)
 #
-#  Part A  cross-sectional ALS vs control at baseline on each platform, then
-#          direction and rank concordance of the Answer ALS DA<- present, and a
-#          panel-wide concordance.
-#
+#  Part A  cross-sectional ALS vs control at baseline on each platform,
+#          direction and rank concordance of the Answer ALS
 #  Part B  ALSFRS-R BLUP slopes in Target ALS, per-protein BLUP slopes on each
 #          platform in ALS patients with >= 2 visits, slope-on-slope, and sign
 #          concordance against the Answer ALS progression markers.
@@ -22,7 +20,7 @@ cat("================================================================\n\n")
 
 na_codes <- function(x) { x <- suppressWarnings(as.numeric(x)); x[!is.na(x) & x < 0] <- NA; x }
 
-# --- 0. Clinical -----------------------
+# --- Clinical -----------------------
 clin <- read.csv(file.path(ta_dir, "nhs_clinical_data.csv"), check.names = FALSE, stringsAsFactors = FALSE)
 clin <- clin %>% transmute(
   subject_id = `Subject ID`,
@@ -40,7 +38,7 @@ subj <- clin %>% arrange(subject_id, visit_number) %>% group_by(subject_id) %>%
 cat("  Clinical:", nrow(clin), "visits |", nrow(subj), "subjects (", sum(subj$group == "ALS"), "ALS ) | time axis:", time_axis, "\n")
 cat("  ALS subjects with >= 2 ALSFRS-R:", sum(table(clin$subject_id[clin$group == "ALS" & !is.na(clin$alsfrs)]) >= 2), "\n\n")
 
-# ---- 0b. Answer ALS results to replicate ---------------------------------
+# ---- Answer ALS results to replicate ---------------------------------
 aals_dap  <- read.csv("../output/landscape/daps_annotated.csv", stringsAsFactors = FALSE) %>%
   filter(sig %in% TRUE, !is.na(gene_symbol)) %>%
   group_by(gene_symbol) %>% summarise(aals_logFC = logFC[which.min(adj.P.Val)], .groups = "drop")
@@ -69,10 +67,13 @@ info <- info %>% filter(technical.replicate != -8888) %>%
          grp = paste(subject.id, visit.number, sep = "|"))
 mat <- as.matrix(rat[, -1]); rownames(mat) <- rat$uniprot; mode(mat) <- "numeric"
 common <- intersect(colnames(mat), info$key)
-mat <- log2(mat[, common]); info <- info[match(common, info$key), ]
+mat <- log2(mat[, common]); mat[!is.finite(mat)] <- NA; info <- info[match(common, info$key), ]
 cat("  TMT plasma:", nrow(mat), "proteins |", ncol(mat), "channels |", n_distinct(info$subject.id), "subjects\n")
 
-mat_v <- t(rowsum(t(mat), info$grp, na.rm = TRUE) / as.vector(table(info$grp)[sort(unique(info$grp))]))
+# Mean of technical replicates over non-missing values only; all-missing stays NA
+rep_sum <- rowsum(t(mat), info$grp, na.rm = TRUE)
+rep_n   <- rowsum(t(!is.na(mat)) * 1, info$grp)
+mat_v <- t(rep_sum / rep_n); mat_v[!is.finite(mat_v)] <- NA
 info_v <- info %>% distinct(grp, .keep_all = TRUE); info_v <- info_v[match(colnames(mat_v), info_v$grp), ]
 info_v <- info_v %>% left_join(subj, by = c("subject.id" = "subject_id")) %>%
   left_join(clin %>% dplyr::select(subject_id, visit_number, time_years), by = c("subject.id" = "subject_id", "visit.number" = "visit_number"))
@@ -150,7 +151,6 @@ cat("  ALSFRS-R BLUP slopes:", nrow(fx_sl), "ALS subjects | mean slope",
     round(mean(fx_sl$ALSFRS_slope), 2), "per", ifelse(time_axis == "days", "year", "visit"), "\n")
 
 slope_design <- function(long, ids, label, min_n = 15) {
-  # long: subject_id, time_years, value ; ids: vector of protein ids to loop over is implicit in `long` being a list
   one <- function(v) {
     v <- v[is.finite(v$value), ]
     if (n_distinct(v$subject_id) < min_n) return(NULL)
@@ -182,7 +182,6 @@ tmt_prog <- slope_design(tmt_long, NULL, "TMT plasma") %>% dplyr::rename(uniprot
   left_join(prot %>% dplyr::select(uniprot, gene_symbol), by = "uniprot")
 write.csv(tmt_prog, "../output/replication/target_als_tmt_plasma_progression.csv", row.names = FALSE)
 
-# 4b Olink but it seems to be on on baseline only
 olk_prog <- NULL
 # 4c. Concordance with the Answer ALS progression markers
 cat("\n-- B2. Answer ALS progression markers on the replication platforms --\n")
