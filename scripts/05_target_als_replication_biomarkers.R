@@ -115,16 +115,16 @@ concord <- function(res, ref, ref_col, label, what = "logFC") {
   if (nrow(d) < 5) { cat("  ", label, ": fewer than 5 present\n"); return(NULL) }
   same <- sign(d$est) == sign(d[[ref_col]])
   bt <- binom.test(sum(same), nrow(d), 0.5)
-  sp <- cor.test(d[[ref_col]], d$est, method = "spearman", exact = FALSE)
-  cat(sprintf("  %s: %d present | same direction %d (%.0f%%, binomial p = %.2g) | Spearman rho = %.2f (p = %.2g) | nominal p < 0.05 same direction %d | FDR < 0.05 same direction %d\n",
+  sp <- cor.test(d[[ref_col]], d$est, method = "pearson", exact = FALSE)
+  cat(sprintf("  %s: %d present | same direction %d (%.0f%%, binomial p = %.2g) | Pearson rho = %.2f (p = %.2g) | nominal p < 0.05 same direction %d | FDR < 0.05 same direction %d\n",
               label, nrow(d), sum(same), 100 * mean(same), bt$p.value, sp$estimate, sp$p.value,
               sum(same & d$P.Value < 0.05), sum(same & d$adj.P.Val < 0.05)))
   d$platform <- label; d
 }
 panel_wide <- function(res, ref, ref_col, label, what = "logFC") {
   d <- ref %>% inner_join(res %>% dplyr::select(gene_symbol, est = all_of(what)), by = "gene_symbol")
-  sp <- cor.test(d[[ref_col]], d$est, method = "spearman", exact = FALSE)
-  cat(sprintf("  %s, all shared proteins: n = %d | Spearman rho = %.3f (p = %.2g)\n", label, nrow(d), sp$estimate, sp$p.value))
+  sp <- cor.test(d[[ref_col]], d$est, method = "pearson", exact = FALSE)
+  cat(sprintf("  %s, all shared proteins: n = %d | Pearson rho = %.3f (p = %.2g)\n", label, nrow(d), sp$estimate, sp$p.value))
 }
 
 cat("-- A2. Answer ALS DAPs on the replication platforms --\n")
@@ -162,7 +162,7 @@ slope_design <- function(long, ids, label, min_n = 15) {
     ps <- data.frame(subject_id = rownames(re), prot_slope = unname(fixef(bl)["time_years"]) + re$time_years) %>%
       inner_join(fx_sl, by = "subject_id")
     if (nrow(ps) < min_n || sd(ps$prot_slope) == 0) return(NULL)
-    ct <- cor.test(ps$prot_slope, ps$ALSFRS_slope)
+    ct <- cor.test(ps$prot_slope, ps$ALSFRS_slope, method="pearson")
     data.frame(n = nrow(ps), cor_r = unname(ct$estimate), p_value = ct$p.value)
   }
   out <- bind_rows(lapply(names(long), function(id) { r <- one(long[[id]]); if (!is.null(r)) cbind(id = id, r) }))

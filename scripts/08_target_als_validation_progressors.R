@@ -94,13 +94,13 @@ cat("Answer ALS markers fitted in Target ALS:", nrow(mk), "\n")
 comp <- make_comp(sl %>% filter(uniprot %in% mk$uniprot), mk) %>%
   filter(n_prot >= ceiling(nrow(mk) / 2)) %>% inner_join(als, by = "subject_id")
 
-r_obs <- cor(comp$composite, comp$als_slope, method = "spearman")
+r_obs <- cor(comp$composite, comp$als_slope, method = "pearson")
 set.seed(7)
 r_boot <- replicate(N_PERM, { i <- sample(nrow(comp), replace = TRUE)
-                              cor(comp$composite[i], comp$als_slope[i], method = "spearman") })
-r_perm <- replicate(N_PERM, cor(comp$composite, sample(comp$als_slope), method = "spearman"))
+                              cor(comp$composite[i], comp$als_slope[i], method = "pearson") })
+r_perm <- replicate(N_PERM, cor(comp$composite, sample(comp$als_slope), method = "pearson"))
 p_perm <- (1 + sum(r_perm >= r_obs)) / (N_PERM + 1)
-cat(sprintf("\nComposite (%d markers, %d patients): Spearman r with ALSFRS-R slope %.3f | 95%% CI %.3f to %.3f | one-sided permutation p = %.3g\n",
+cat(sprintf("\nComposite (%d markers, %d patients): Pearson r with ALSFRS-R slope %.3f | 95%% CI %.3f to %.3f | one-sided permutation p = %.3g\n",
             nrow(mk), nrow(comp), r_obs, quantile(r_boot, 0.025), quantile(r_boot, 0.975), p_perm))
 
 # Per-marker correlations and direction agreement
@@ -108,8 +108,8 @@ gene_tab <- read_excel(TMT_FILE, sheet = "2-plasma_protein_info") %>% as.data.fr
 genes <- tibble(uniprot = sub("-\\d+$", "", gene_tab[[1]]), gene = sub(";.*$", "", gene_tab$Gene.Symbol)) %>%
   distinct(uniprot, .keep_all = TRUE)
 per_marker <- sl %>% filter(uniprot %in% mk$uniprot) %>% group_by(uniprot) %>%
-  summarise(r_ta = cor(prot_slope, als_slope, method = "spearman"),
-            p_ta = cor.test(prot_slope, als_slope, method = "spearman", exact = FALSE)$p.value,
+  summarise(r_ta = cor(prot_slope, als_slope, method = "pearson"),
+            p_ta = cor.test(prot_slope, als_slope, method = "pearson", exact = FALSE)$p.value,
             n = n(), .groups = "drop") %>%
   inner_join(mk, by = "uniprot") %>% left_join(genes, by = "uniprot") %>%
   mutate(concordant = sign(r_ta) == sign_aals, gene = coalesce(gene, uniprot)) %>%
@@ -123,7 +123,7 @@ print(as.data.frame(per_marker %>% select(gene, uniprot, sign_aals, r_ta, p_ta, 
 loo <- bind_rows(lapply(mk$uniprot, function(u) {
   k <- mk %>% filter(uniprot != u)
   cc <- make_comp(sl %>% filter(uniprot %in% k$uniprot), k) %>% inner_join(als, by = "subject_id")
-  tibble(dropped = u, r = cor(cc$composite, cc$als_slope, method = "spearman"))
+  tibble(dropped = u, r = cor(cc$composite, cc$als_slope, method = "pearson"))
 })) %>% left_join(genes, by = c("dropped" = "uniprot"))
 cat(sprintf("Leave one marker out: r from %.3f (without %s) to %.3f\n",
             min(loo$r), loo$gene[which.min(loo$r)], max(loo$r)))
@@ -135,7 +135,7 @@ set.seed(8)
 r_null <- replicate(N_NULL, {
   k <- nm %>% slice_sample(n = nrow(mk))
   cc <- make_comp(sl %>% filter(uniprot %in% k$uniprot), k) %>% inner_join(als, by = "subject_id")
-  cor(cc$composite, cc$als_slope, method = "spearman")
+  cor(cc$composite, cc$als_slope, method = "pearson")
 })
 p_null <- (1 + sum(r_null >= r_obs)) / (N_NULL + 1)
 cat(sprintf("Null of %d random sets of %d non-marker proteins (directions from Answer ALS): median r %.3f | 95th percentile %.3f | empirical p = %.3g\n",
@@ -151,9 +151,10 @@ if (file.exists(olk_file)) {
     cn <- comp %>% inner_join(nefl, by = "subject_id") %>%
       mutate(nefl_z = as.numeric(scale(nefl)), comp_z = as.numeric(scale(composite)))
     if (nrow(cn) >= 20) {
-      r_n <- cor.test(-cn$nefl, cn$als_slope, method = "spearman", exact = FALSE)
+      r_n <- cor.test(-cn$nefl, cn$als_slope, method = "pearson", exact = FALSE)
       m0 <- lm(als_slope ~ nefl_z, data = cn); m1 <- lm(als_slope ~ nefl_z + comp_z, data = cn)
       nefl_res <- tibble(n = nrow(cn), r_nefl = unname(r_n$estimate), p_nefl = r_n$p.value,
+                         r_nefl_pearson = unname(r_n$estimate), p_nefl_pearson = r_n$p.value,
                          r2_nefl = summary(m0)$r.squared, r2_both = summary(m1)$r.squared,
                          p_added = anova(m0, m1)$`Pr(>F)`[2])
       cat(sprintf("\nBaseline NEFL (Olink), %d patients: r with ALSFRS-R slope (sign-reversed) %.3f (p = %.3g)\n",
@@ -171,7 +172,7 @@ half <- comp %>% mutate(half = factor(ifelse(rank(als_slope, ties.method = "firs
 hb <- half %>% group_by(half) %>% group_modify(~ {
   f <- lm(composite ~ als_slope, data = .x); ci <- confint(f)["als_slope", ]
   tibble(beta = unname(coef(f)[2]), lo = unname(ci[1]), hi = unname(ci[2]),
-         r = cor(.x$composite, .x$als_slope, method = "spearman"), n = nrow(.x),
+         r = cor(.x$composite, .x$als_slope, method = "pearson"), n = nrow(.x),
          median_slope = median(.x$als_slope))
 }) %>% ungroup()
 p_half <- summary(lm(composite ~ als_slope * half, data = half))$coefficients["als_slope:halfFaster half", "Pr(>|t|)"]
@@ -192,13 +193,13 @@ pb <- ggplot(per_marker %>% mutate(gene = factor(gene, levels = rev(unique(gene)
   geom_vline(xintercept = 0, colour = "grey50") + geom_point(size = 2) +
   scale_colour_manual(values = c(`TRUE` = "black", `FALSE` = "#B2182B"),
                       labels = c(`TRUE` = "Same direction", `FALSE` = "Opposite"), name = NULL) +
-  labs(tag = "b", x = "Spearman r in Target ALS, signed by Answer ALS direction", y = NULL,
+  labs(tag = "b", x = "Pearson r in Target ALS, signed by Answer ALS direction", y = NULL,
        subtitle = sprintf("%d of %d in the Answer ALS direction", sum(per_marker$concordant), nrow(per_marker))) +
   base + theme(legend.position = "bottom")
 pc <- ggplot(tibble(r = r_null), aes(r)) +
   geom_histogram(bins = 40, fill = "grey70", colour = "white") +
   geom_vline(xintercept = r_obs, colour = "#B2182B", linewidth = 1) +
-  labs(tag = "c", x = "Spearman r of random non-marker composites", y = "Count",
+  labs(tag = "c", x = "Pearson r of random non-marker composites", y = "Count",
        subtitle = sprintf("Markers against %d random protein sets, p = %s", N_NULL,
                           format.pval(p_null, digits = 2))) + base
 

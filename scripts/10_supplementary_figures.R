@@ -85,8 +85,8 @@ ps1b <- ggplot(nd, aes(model, 100 * r2)) +
   geom_text(aes(label = sprintf("%.1f%%", 100 * r2)), vjust = -0.4, size = 3) +
   scale_y_continuous(limits = c(0, 60), expand = expansion(mult = c(0, 0.02))) +
   labs(tag = "", x = NULL, y = "Variance in ALSFRS-R slope explained (%)",
-       subtitle = sprintf("Olink baseline NEFL, %d patients: r = %.2f (sign-reversed), p = %s\nComposite added p = %s",
-                          nr$n, nr$r_nefl, fmt_p_plain(nr$p_nefl), fmt_p_plain(nr$p_added))) +
+       subtitle = sprintf("Olink baseline NEFL, %d patients: r = %.2f, p = %s\nComposite added p = %s",
+                          nr$n, nr$r_nefl_pearson, fmt_p_plain(nr$p_nefl_pearson), fmt_p_plain(nr$p_added))) +
   base + theme(
                axis.text.x = element_text(size=9),
                axis.title.y = element_text(size=12))

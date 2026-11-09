@@ -205,8 +205,8 @@ print(as.data.frame(tab_course %>% mutate(across(starts_with("p_") | starts_with
 boot_r <- function(x, y) {
   ok <- is.finite(x) & is.finite(y); x <- x[ok]; y <- y[ok]
   if (length(x) < 15) return(tibble(r = NA_real_, lo = NA_real_, hi = NA_real_, n = length(x)))
-  r0 <- cor(x, y, method = "spearman")
-  rb <- replicate(N_BOOT, { i <- sample(length(x), replace = TRUE); cor(x[i], y[i], method = "spearman") })
+  r0 <- cor(x, y, method = "pearson")
+  rb <- replicate(N_BOOT, { i <- sample(length(x), replace = TRUE); cor(x[i], y[i], method = "pearson") })
   tibble(r = r0, lo = unname(quantile(rb, 0.025, na.rm = TRUE)),
          hi = unname(quantile(rb, 0.975, na.rm = TRUE)), n = length(x))
 }
@@ -223,7 +223,7 @@ track <- bind_rows(lapply(names(outcomes), function(lab) {
     boot_r(dt$composite, dt[[v]]) %>% mutate(tertile = "All")) %>%
     mutate(outcome = lab)
 }))
-cat("\nSpearman r of cross-fitted composite change with each slope, by third:\n")
+cat("\nPearson r of cross-fitted composite change with each slope, by third:\n")
 print(as.data.frame(track %>% select(outcome, tertile, r, lo, hi, n)), digits = 3, row.names = FALSE)
 
 # sensitivity for the fast progressor blind spot
@@ -235,7 +235,7 @@ cut_tab <- bind_rows(lapply(2:5, function(k) {
   one <- function(d) {
     f <- lm(composite ~ als_slope, data = d); ci <- confint(f)["als_slope", ]
     c(beta = unname(coef(f)[2]), lo = unname(ci[1]), hi = unname(ci[2]),
-      r = cor(d$composite, d$als_slope, method = "spearman"), n = nrow(d))
+      r = cor(d$composite, d$als_slope, method = "pearson"), n = nrow(d))
   }
   fa <- one(filter(ext, grp == "Fastest")); sl <- one(filter(ext, grp == "Slowest"))
   p <- summary(lm(composite ~ als_slope * grp, data = ext))$coefficients["als_slope:grpFastest", "Pr(>|t|)"]
@@ -293,8 +293,8 @@ cat(sprintf("\nPatients with both Delta FS and NfL: %d\n", nrow(ds)))
 cat(sprintf("AUC for the fast third: Delta FS %.2f | baseline NfL %.2f | both (in-sample, optimistic) %.2f\n",
             auc(ds$dfs_pre, ds$is_fast), auc(ds$nfl_baseline, ds$is_fast),
             auc(fitted(g_both), ds$is_fast)))
-cat(sprintf("Spearman r of Delta FS with baseline NfL: %.2f\n",
-            cor(ds$dfs_pre, ds$nfl_baseline, method = "spearman")))
+cat(sprintf("Pearson r of Delta FS with baseline NfL: %.2f\n",
+            cor(ds$dfs_pre, ds$nfl_baseline, method = "pearson")))
 cat("\nFast-third patients in each third of the stratifier:\n")
 print(rbind(`Delta FS` = table(ds$dfs_third[ds$is_fast]), NfL = table(ds$nfl_third[ds$is_fast])))
 
@@ -327,7 +327,7 @@ set.seed(9)
 onset_tab <- fo %>% group_by(onset) %>%
   group_modify(~ bind_cols(
     boot_r(.x$composite, .x$als_slope),
-    tibble(p = cor.test(.x$composite, .x$als_slope, method = "spearman", exact = FALSE)$p.value))) %>%
+    tibble(p = cor.test(.x$composite, .x$als_slope, method = "pearson", exact = FALSE)$p.value))) %>%
   ungroup()
 p_onset <- summary(lm(composite ~ als_slope * onset, data = fo))$coefficients["als_slope:onsetBulbar", "Pr(>|t|)"]
 cat("\nWithin the fast third, composite r with ALSFRS-R slope by onset site:\n")
@@ -360,7 +360,7 @@ pb <- ggplot(track %>% filter(is.finite(r)) %>%
   geom_vline(xintercept = 0, colour = "grey50") +
   geom_pointrange(aes(xmin = lo, xmax = hi), position = position_dodge(width = 0.6)) +
   scale_colour_manual(values = tert_cols, name = NULL, breaks = c("All", "Fast", "Middle", "Slow")) +
-  labs(tag = "b", x = "Spearman r with cross-fitted marker composite change", y = NULL) +
+  labs(tag = "b", x = "Pearson r with cross-fitted marker composite change", y = NULL) +
   base_theme + theme(legend.position = "bottom")
 
 pc <- ggplot(strat %>% mutate(stratum = factor(stratum, levels = c("Low", "Middle", "High"))),
@@ -370,7 +370,7 @@ pc <- ggplot(strat %>% mutate(stratum = factor(stratum, levels = c("Low", "Middl
   scale_colour_manual(values = c(`Pre-baseline Delta FS` = "#B2182B", `Baseline serum NfL` = "black"),
                       name = NULL) +
   labs(tag = "c", x = "Third of the enrolment measure",
-       y = "Spearman r, composite change with ALSFRS-R slope") +
+       y = "Pearson r, composite change with ALSFRS-R slope") +
   base_theme + theme(legend.position = "bottom")
 
 fig_file <- "../output/figures/fig_fast_progressor_clinical.tiff"

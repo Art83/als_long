@@ -85,9 +85,9 @@ inter_p <- function(dd, g, ref, hi) {
   if (nm %in% rownames(cf)) unname(cf[nm, "Pr(>|t|)"]) else NA_real_
 }
 boot_r <- function(x, y, B = 2000) {
-  r0 <- cor(x, y, method = "spearman")
+  r0 <- cor(x, y, method = "pearson")
   rb <- replicate(B, { i <- sample(length(x), replace = TRUE)
-  cor(x[i], y[i], method = "spearman") })
+  cor(x[i], y[i], method = "pearson") })
   tibble(r = r0, lo = unname(quantile(rb, 0.025)), hi = unname(quantile(rb, 0.975)))
 }
 
@@ -148,11 +148,11 @@ for (b in seq_len(N_CROSSFIT)) {
 cv <- tibble(GUID = ids, composite = rowMeans(acc, na.rm = TRUE)) %>% inner_join(pt, by = "GUID")
 tert_cv <- by_grp(cv, "tertile") %>% mutate(set = "Cross-fitted markers")
 p_cv <- inter_p(cv, "tertile", "Slow", "Fast")
-r_cv <- cor.test(cv$composite, cv$als_slope, method = "spearman", exact = FALSE)
-r_in <- cor.test(comp$composite, comp$als_slope, method = "spearman", exact = FALSE)
+r_cv <- cor.test(cv$composite, cv$als_slope, method = "pearson", exact = FALSE)
+r_in <- cor.test(comp$composite, comp$als_slope, method = "pearson", exact = FALSE)
 cat(sprintf("\nCross-fitting: %d repeats, %d aptamers screened, median overlap with the 72 = %.2f\n",
             N_CROSSFIT, ncol(M), median(overlap)))
-cat(sprintf("Spearman r with ALSFRS-R slope: cross-fitted %.3f (p = %.3g) | in-sample %.3f (p = %.3g)\n",
+cat(sprintf("Pearson r with ALSFRS-R slope: cross-fitted %.3f (p = %.3g) | in-sample %.3f (p = %.3g)\n",
             r_cv$estimate, r_cv$p.value, r_in$estimate, r_in$p.value))
 cat("Composite change per ALSFRS-R point, by third of decline (cross-fitted markers):\n")
 print(as.data.frame(tert_cv), digits = 3, row.names = FALSE)
@@ -208,9 +208,9 @@ if (file.exists(NFL_FILE)) {
                            labels = c("Low", "Middle", "High")))
   cat("\nPatients with baseline NfL and >= 2 NfL draws:", nrow(both), "\n")
   
-  r_ns <- cor.test(-both$nfl_slope, both$als_slope, method = "spearman", exact = FALSE)
-  r_cs <- cor.test(both$composite, both$als_slope, method = "spearman", exact = FALSE)
-  cat(sprintf("Spearman r with ALSFRS-R slope: NfL change (sign-reversed) %.3f (p = %.3g) | cross-fitted composite %.3f (p = %.3g)\n",
+  r_ns <- cor.test(-both$nfl_slope, both$als_slope, method = "pearson", exact = FALSE)
+  r_cs <- cor.test(both$composite, both$als_slope, method = "pearson", exact = FALSE)
+  cat(sprintf("Pearson r with ALSFRS-R slope: NfL change %.3f (p = %.3g) | cross-fitted composite %.3f (p = %.3g)\n",
               r_ns$estimate, r_ns$p.value, r_cs$estimate, r_cs$p.value))
   c0 <- lm(als_slope ~ nfl_z + nfl_slope_z, data = both)
   c1 <- lm(als_slope ~ nfl_z + nfl_slope_z + comp_z, data = both)
@@ -230,12 +230,12 @@ if (file.exists(NFL_FILE)) {
     boot_r(.x$composite, .x$als_slope) %>% mutate(measure = "Plasma marker composite change"),
     boot_r(-.x$nfl_slope, .x$als_slope) %>% mutate(measure = "Serum NfL change"))) %>%
     ungroup()
-  cat("\nWithin thirds of baseline NfL, Spearman r of each change measure with ALSFRS-R slope (NfL sign-reversed):\n")
+  cat("\nWithin thirds of baseline NfL, Pearson r of each change measure with ALSFRS-R slope (NfL sign-reversed):\n")
   print(as.data.frame(nfl_r), digits = 3, row.names = FALSE)
   
   # Paired bootstrap of composite r minus NfL change r within each NfL third
-  r_diff <- function(x) cor(x$composite, x$als_slope, method = "spearman") -
-    cor(-x$nfl_slope, x$als_slope, method = "spearman")
+  r_diff <- function(x) cor(x$composite, x$als_slope, method = "pearson") -
+    cor(-x$nfl_slope, x$als_slope, method = "pearson")
   set.seed(4)
   nfl_diff <- both %>% group_by(nfl_third) %>% group_modify(~ {
     d0 <- r_diff(.x)
@@ -338,7 +338,7 @@ if (!is.null(nfl_r)) {
     scale_colour_manual(values = c(`Plasma marker composite change` = "black",
                                    `Serum NfL change` = "#B2182B"), name = NULL) +
     labs(tag = "c", x = "Third of baseline serum NfL",
-         y = "Spearman r with ALSFRS-R slope",
+         y = "Pearson r with ALSFRS-R slope",
          subtitle = sprintf("Same %d patients, composite cross-fitted\nDifference p = %s (low), %s (middle), %s (high)",
                             nrow(both), format.pval(nfl_diff$p[1], digits = 2),
                             format.pval(nfl_diff$p[2], digits = 2), format.pval(nfl_diff$p[3], digits = 2))) +

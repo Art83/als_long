@@ -296,13 +296,13 @@ aals_all <- daps %>% filter(!is.na(gene_symbol)) %>% group_by(gene_symbol) %>%
   summarise(aals_logFC = logFC[which.min(adj.P.Val)], .groups = "drop")
 bg_rho <- function(res) {
   d <- aals_all %>% inner_join(res %>% select(gene_symbol, est = logFC), by = "gene_symbol")
-  c(rho = unname(cor(d$aals_logFC, d$est, method = "spearman", use = "complete.obs")), n = nrow(d))
+  c(rho = unname(cor(d$aals_logFC, d$est, method = "pearson", use = "complete.obs")), n = nrow(d))
 }
 rep_plot <- function(platform, res, tag, ylab) {
   d <- rep_dap %>% filter(platform == !!platform)
   same <- sign(d$aals_logFC) == sign(d$est)
   bt <- binom.test(sum(same), nrow(d), 0.5)
-  rho <- cor(d$aals_logFC, d$est, method = "spearman")
+  rho <- cor(d$aals_logFC, d$est, method = "pearson")
   bg <- bg_rho(res)
   lab <- if (nrow(d) <= 15) d else d %>% filter(adj.P.Val < 0.05 | abs(aals_logFC) > 0.8)
   ggplot(d, aes(aals_logFC, est)) +
@@ -313,7 +313,7 @@ rep_plot <- function(platform, res, tag, ylab) {
     scale_colour_manual(values = c(`TRUE` = "black", `FALSE` = "grey60"),
                         labels = c(`TRUE` = "FDR < 0.05", `FALSE` = "NS"), name = NULL) +
     labs(tag = tag, x = expression("Answer ALS "*log[2]*"FC (SomaScan)"), y = ylab,
-         subtitle = sprintf("%d of %d same direction, p = %s\nrho = %.2f (all shared: rho = %.2f, n = %d)",
+         subtitle = sprintf("%d of %d same direction, p = %s\nr = %.2f (all shared: r = %.2f, n = %d)",
                             sum(same), nrow(d), fmt_p_plain(bt$p.value), rho, bg["rho"], bg["n"])) +
     base + theme(legend.position = "bottom",
                  axis.title.x = element_text(size=12),
@@ -337,12 +337,12 @@ aals_prog <- prog_gene %>% transmute(gene_symbol, aals_cor_r = cor_r)
 pc <- aals_prog %>% inner_join(tmt_prog %>% select(gene_symbol, ta_r = cor_r, ta_p = p_value), by = "gene_symbol")
 same_p <- sign(pc$aals_cor_r) == sign(pc$ta_r)
 bt_p <- binom.test(sum(same_p), nrow(pc), 0.5)
-rho_p <- cor.test(pc$aals_cor_r, pc$ta_r, method = "spearman", exact = FALSE)
+rho_p <- cor.test(pc$aals_cor_r, pc$ta_r, method = "pearson")
 bgp <- prog %>% filter(!is.na(gene_symbol)) %>% group_by(gene_symbol) %>%
   summarise(a = cor_r[which.min(p_value)], .groups = "drop") %>%
   inner_join(tmt_prog %>% select(gene_symbol, b = cor_r), by = "gene_symbol")
-rho_bg <- cor(bgp$a, bgp$b, method = "spearman", use = "complete.obs")
-cat(sprintf("  Progression replication: %d present, %d same direction, rho = %.2f, background rho = %.2f (n = %d)\n",
+rho_bg <- cor(bgp$a, bgp$b, method = "pearson", use = "complete.obs")
+cat(sprintf("  Progression replication: %d present, %d same direction, r = %.2f, background r = %.2f (n = %d)\n",
             nrow(pc), sum(same_p), rho_p$estimate, rho_bg, nrow(bgp)))
 p3c <- ggplot(pc, aes(aals_cor_r, ta_r)) +
   geom_hline(yintercept = 0, colour = "grey60") + geom_vline(xintercept = 0, colour = "grey60") +
@@ -353,7 +353,7 @@ p3c <- ggplot(pc, aes(aals_cor_r, ta_r)) +
                       labels = c(`TRUE` = "p < 0.05", `FALSE` = "NS"), name = NULL) +
   labs(tag = "C", x = "Answer ALS r with ALSFRS-R slope",
        y = "Target ALS r with ALSFRS-R slope",
-       subtitle = sprintf("%d of %d same direction, p = %s\nrho = %.2f (all shared: rho = %.2f, n = %d)",
+       subtitle = sprintf("%d of %d same direction, p = %s\nr = %.2f (all shared: r = %.2f, n = %d)",
                           sum(same_p), nrow(pc), fmt_p_plain(bt_p$p.value), rho_p$estimate, rho_bg, nrow(bgp))) +
   base + theme(legend.position = "bottom",
                axis.title.x = element_text(size=12),
@@ -843,7 +843,7 @@ p8d <- ggplot(tr, aes(r, outcome, colour = tertile)) +
   geom_vline(xintercept = 0, colour = "grey50") +
   geom_pointrange(aes(xmin = lo, xmax = hi), position = position_dodge(width = 0.55), size = 0.4) +
   scale_colour_manual(values = c(`Fastest third` = col_up, `Slowest third` = col_down), name = NULL) +
-  labs(tag = "", x = "Spearman r of composite change with decline (95% CI)", y = NULL,
+  labs(tag = "", x = "Pearson r of composite change with decline (95% CI)", y = NULL,
        subtitle = "Cross-fitted composite") +
   base + theme(legend.position = "bottom",
                axis.text.x = element_text(size=9),
