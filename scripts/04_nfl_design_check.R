@@ -517,6 +517,12 @@ if (!is.null(dyn_fu) && !is.null(pt)) {
 
 
 
+# --- 7e. Per-patient data for the manuscript figures (need it for publication figures) ---
+fig_objs <- intersect(c("res", "conc", "matched", "wp", "bb_ia", "pt", "pt_fu", "tert_tbl", "fu_tbl",
+                        "ia_res", "i_all", "rel_nfl", "rel_fx"), ls())
+save(list = fig_objs, file = "../output/nfl_check/nfl_figure_data.RData")
+
+
 # --- 8. Combined verdict ----------------
 cat("-- Combined verdict ------------------------------------------------\n")
 a <- nfl_row[1, ]
