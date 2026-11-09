@@ -1,0 +1,58 @@
+"Set","Top_tissue","Proteins","Percent"
+"Differential plasma proteins","Cerebral cortex",20,31.7
+"Differential plasma proteins","Colon",12,19
+"Differential plasma proteins","Heart muscle",12,19
+"Differential plasma proteins","Testis",7,11.1
+"Differential plasma proteins","Skin",4,6.3
+"Differential plasma proteins","Lung",3,4.8
+"Differential plasma proteins","Liver",2,3.2
+"Differential plasma proteins","Cervix",1,1.6
+"Differential plasma proteins","Esophagus",1,1.6
+"Differential plasma proteins","Salivary gland",1,1.6
+"Panel","Cerebral cortex",2247,36.9
+"Panel","Colon",1414,23.2
+"Panel","Testis",497,8.2
+"Panel","Liver",369,6.1
+"Panel","Heart muscle",347,5.7
+"Panel","Skin",298,4.9
+"Panel","Lung",283,4.7
+"Panel","Pancreas",166,2.7
+"Panel","Spleen",132,2.2
+"Panel","Stomach",109,1.8
+"Panel","Kidney",52,0.9
+"Panel","Adrenal gland",47,0.8
+"Panel","Lymph node",22,0.4
+"Panel","Cerebellum",21,0.3
+"Panel","Epididymis",11,0.2
+"Panel","Breast",9,0.1
+"Panel","Caudate",8,0.1
+"Panel","Appendix",6,0.1
+"Panel","Esophagus",6,0.1
+"Panel","Bronchus",5,0.1
+"Panel","Eye",5,0.1
+"Panel","Duodenum",3,0
+"Panel","Ovary",3,0
+"Panel","Retina",3,0
+"Panel","Small intestine",3,0
+"Panel","Bone marrow",2,0
+"Panel","Cervix",2,0
+"Panel","Fallopian tube",2,0
+"Panel","Hypothalamus",2,0
+"Panel","Tonsil",2,0
+"Panel","Gallbladder",1,0
+"Panel","Hair",1,0
+"Panel","Lactating breast",1,0
+"Panel","Parathyroid gland",1,0
+"Panel","Placenta",1,0
+"Panel","Prostate",1,0
+"Panel","Rectum",1,0
+"Panel","Salivary gland",1,0
+"Progression markers","Cerebral cortex",23,39.7
+"Progression markers","Colon",10,17.2
+"Progression markers","Testis",7,12.1
+"Progression markers","Heart muscle",5,8.6
+"Progression markers","Lung",4,6.9
+"Progression markers","Skin",4,6.9
+"Progression markers","Liver",2,3.4
+"Progression markers","Spleen",2,3.4
+"Progression markers","Adrenal gland",1,1.7

@@ -1,0 +1,4 @@
+"Comparison","Draws_or_patients","r","p"
+"All matched draws",763,0.0784211633733527,0.030313477529845
+"Baseline draw only",241,0.0267810439821843,0.679118544259813
+"Within-patient change",228,-0.0182878104443452,0.783588916502451

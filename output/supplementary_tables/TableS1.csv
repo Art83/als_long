@@ -1,0 +1,14 @@
+Characteristic,"ALS, baseline plasma","Controls, baseline plasma","ALS, serial plasma (slope design)"
+Participants,245,76,229
+"Age at first PBMC collection, years","59.0 [51.0, 66.0] (n = 237)","60.0 [49.0, 65.0] (n = 73)","60.0 [51.2, 66.0] (n = 222)"
+Male,153/245 (62%),24/76 (32%),140/229 (61%)
+"Age at symptom onset, years","56.0 [48.0, 63.0] (n = 245)",,"56.0 [49.0, 63.0] (n = 229)"
+"Symptom duration at first PBMC collection, years","2.00 [2.00, 4.00] (n = 237)",,"2.00 [2.00, 4.00] (n = 222)"
+Bulbar onset,41/245 (17%),,37/229 (16%)
+Revised El Escorial definite,57/243 (23%),,55/227 (24%)
+C9orf72 repeat expansion,17/235 (7%),,17/221 (8%)
+Baseline ALSFRS-R total,"38.0 [32.0, 42.0] (n = 244)",,"38.0 [32.0, 42.0] (n = 229)"
+ALSFRS-R assessments,"5 [4, 6] (n = 244)",,"5 [4, 6] (n = 229)"
+"ALSFRS-R slope, points per year",,,"-6.02 [-10.36, -3.07] (n = 229)"
+Dated plasma draws,"3 [3, 4] (n = 243)",,"3 [3, 4] (n = 229)"
+"Plasma follow-up, years","0.93 [0.75, 1.11] (n = 243)",,"0.94 [0.78, 1.13] (n = 229)"

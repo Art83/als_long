@@ -1,0 +1,9 @@
+"Model","Beta","p"
+"Unadjusted (7,175 aptamers)",0.00216921359659039,0.000667037573134869
+"Adjusted for signal and CV",0.000923675587886349,0.146755239900658
+"Adjusted, permutation (2,000)",0.000923675587886349,0.1275
+"HPA subset: naive (covered subset) (n = 3181)",-0.00107963692718218,0.291043647555903
+"HPA subset: adjusted: SomaScan signal + CV (n = 3181)",-0.00150296365132323,0.142400387280399
+"HPA subset: adjusted: HPA MS conc + CV (n = 3181)",-0.000585799356754531,0.57354585760322
+"HPA subset: adjusted: HPA MS conc + SomaScan signal + CV (n = 3181)",-0.00113372135839686,0.277807043871082
+"HPA subset: adjusted: HPA IM conc + CV (n = 575)",0.0019357765712964,0.465603614038863

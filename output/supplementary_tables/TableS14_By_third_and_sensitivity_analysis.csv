@@ -1,0 +1,16 @@
+"Analysis","Third","Patients","Beta","CI_lower","CI_upper"
+"In-sample composite, all patients","Fastest third",77,0.0323323585170137,-0.00467000362602873,0.0693347206600561
+"In-sample composite, all patients","Middle third",76,0.0870225599662851,0.0314647154496042,0.142580404482966
+"In-sample composite, all patients","Slowest third",76,0.11481785699701,0.0525631934993903,0.177072520494629
+"Cross-fitted composite, all patients","Fastest third",77,0.0155727006159836,-0.0125184563083594,0.0436638575403266
+"Cross-fitted composite, all patients","Middle third",76,0.0596668027762228,0.0145228871848451,0.1048107183676
+"Cross-fitted composite, all patients","Slowest third",76,0.0781368848212373,0.0290825735535544,0.12719119608892
+"In-sample composite, at least 1 year of follow-up","Fastest third",47,0.0329684748056756,-0.0258950276560153,0.0918319772673664
+"In-sample composite, at least 1 year of follow-up","Middle third",53,0.114827429630328,0.0524082600139413,0.177246599246715
+"In-sample composite, at least 1 year of follow-up","Slowest third",58,0.126286312140615,0.0539896552962139,0.198582968985017
+"In-sample composite, excluding samples within 6 months of death","Fastest third",76,0.0199912462476023,-0.016189459896602,0.0561719523918065
+"In-sample composite, excluding samples within 6 months of death","Middle third",76,0.0732072241937664,0.028677913452229,0.117736534935304
+"In-sample composite, excluding samples within 6 months of death","Slowest third",76,0.106736194778137,0.0460008825728574,0.167471506983417
+"In-sample composite, excluding samples within 12 months of death","Fastest third",65,0.0415938055948688,0.00494637414506581,0.0782412370446717
+"In-sample composite, excluding samples within 12 months of death","Middle third",72,0.0677700410643855,0.0167563092587146,0.118783772870056
+"In-sample composite, excluding samples within 12 months of death","Slowest third",76,0.104895489470382,0.0457234108780304,0.164067568062733

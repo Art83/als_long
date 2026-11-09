@@ -1,0 +1,7 @@
+"Draws","Third","Patients","Median_NfL_pg_mL","r","p"
+"All draws","Low",154,23.2,-0.317,6.1e-05
+"All draws","Intermediate",154,46.3,-0.207,0.01
+"All draws","High",154,88.8,0.077,0.34
+"Follow-up draws only","Low",98,,-0.232,0.021
+"Follow-up draws only","Intermediate",97,,-0.023,0.83
+"Follow-up draws only","High",80,,0.075,0.51

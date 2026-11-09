@@ -1,0 +1,127 @@
+"Set","Gene","Route","Localisation","Specificity","Primary_tissue"
+"Differential plasma proteins","ACTN2","intracellular","Cytoplasmic","specific","Heart muscle, Skeletal muscle"
+"Differential plasma proteins","ATF5","intracellular","Nuclear, Cytoplasmic, Cytoskeletal","na",
+"Differential plasma proteins","CA3","intracellular","Cytoplasmic","specific","Adipose tissue, Skeletal muscle"
+"Differential plasma proteins","CAPN3","intracellular","Nuclear, Cytoplasmic","broad","multiple"
+"Differential plasma proteins","CKM","intracellular","Cytoplasmic","na",
+"Differential plasma proteins","CSRP3","intracellular","Nuclear, Cytoplasmic, Cytoskeletal","na",
+"Differential plasma proteins","DUSP13A","intracellular","Cytoplasmic","na",
+"Differential plasma proteins","DUSP29","intracellular","Nuclear, Cytoplasmic","na",
+"Differential plasma proteins","EHMT2","intracellular","Nuclear","broad","multiple"
+"Differential plasma proteins","FTL","intracellular","Cytoplasmic","broad","multiple"
+"Differential plasma proteins","GPT","intracellular","Cytoplasmic","broad","multiple"
+"Differential plasma proteins","HPGDS","intracellular","Cytoplasmic","specific","Skin"
+"Differential plasma proteins","KLHL41","intracellular","Cytoplasmic, ER/Golgi, Cytoskeletal, Cell projection","specific","Skeletal muscle"
+"Differential plasma proteins","MYOM2","intracellular","Cytoplasmic","broad","multiple"
+"Differential plasma proteins","MYOM3","intracellular","Cytoplasmic","na",
+"Differential plasma proteins","PDLIM3","intracellular","Cytoplasmic","specific","Cerebellum, Skeletal muscle"
+"Differential plasma proteins","PPP1R10","intracellular","Nuclear","broad","multiple"
+"Differential plasma proteins","SH3GL3","intracellular","Cytoplasmic, Cell projection","na",
+"Differential plasma proteins","THAP4","intracellular","Nuclear, Cytoplasmic","na",
+"Differential plasma proteins","TPPP2","intracellular","Cytoplasmic, Cell projection","specific","Testis"
+"Differential plasma proteins","ANTXR1","membrane","Membrane, Cell projection","na",
+"Differential plasma proteins","AOC3","membrane","Membrane","specific","Adipose tissue, Lung, Skin, Smooth muscle"
+"Differential plasma proteins","ART3","membrane","Membrane","specific","Testis"
+"Differential plasma proteins","BCAM","membrane","Membrane","broad","multiple"
+"Differential plasma proteins","CD164L2","membrane","Membrane","specific","Salivary gland"
+"Differential plasma proteins","CD248","membrane","Membrane","broad","multiple"
+"Differential plasma proteins","COX6A2","membrane","Membrane, Mitochondrial","na",
+"Differential plasma proteins","HJV","membrane","Membrane","na",
+"Differential plasma proteins","LRTM1","membrane","Membrane","na",
+"Differential plasma proteins","MPZ","membrane","Membrane","specific","Soft tissue"
+"Differential plasma proteins","MXRA8","membrane","Membrane, Nuclear, Cytoplasmic, Cell projection","na",
+"Differential plasma proteins","NRXN3","membrane","Membrane, Cell projection","specific","Cerebral cortex"
+"Differential plasma proteins","PCDHAC2","membrane","Membrane","na",
+"Differential plasma proteins","PCDHGA12","membrane","Membrane","na",
+"Differential plasma proteins","RGMA","membrane","Membrane","broad","multiple"
+"Differential plasma proteins","SLC26A7","membrane","Membrane, Cytoplasmic","na",
+"Differential plasma proteins","TRIM72","membrane","Membrane, Cytoplasmic","na",
+"Differential plasma proteins","ANTXR2","secreted","Secreted, Membrane, ER/Golgi","na",
+"Differential plasma proteins","CALCB","secreted","Secreted","na",
+"Differential plasma proteins","CD209","secreted","Secreted, Membrane","specific","Placenta"
+"Differential plasma proteins","CHAD","secreted","Secreted","broad","multiple"
+"Differential plasma proteins","CLEC3B","secreted","Secreted","na",
+"Differential plasma proteins","COL28A1","secreted","Secreted","na",
+"Differential plasma proteins","COL6A3","secreted","Secreted","specific","Bone marrow, Ovary, Skin"
+"Differential plasma proteins","COMP","secreted","Secreted","na",
+"Differential plasma proteins","CRTAC1","secreted","Secreted","broad","multiple"
+"Differential plasma proteins","HSPB6","secreted","Secreted, Nuclear, Cytoplasmic","broad","multiple"
+"Differential plasma proteins","IGFBP5","secreted","Secreted, Nuclear, Cytoplasmic","na",
+"Differential plasma proteins","MSTN","secreted","Secreted","na",
+"Differential plasma proteins","MUSTN1","secreted","Secreted, Nuclear, Cytoplasmic","na",
+"Differential plasma proteins","MYOC","secreted","Secreted, Cytoplasmic, Mitochondrial, ER/Golgi, Cell projection","na",
+"Differential plasma proteins","OMD","secreted","Secreted","na",
+"Differential plasma proteins","SLIT3","secreted","Secreted","broad","multiple"
+"Differential plasma proteins","SPINK7","secreted","Secreted","broad","multiple"
+"Differential plasma proteins","TGFBR3","secreted","Secreted, Membrane","broad","multiple"
+"Differential plasma proteins","THBS4","secreted","Secreted, Cytoplasmic, ER/Golgi","broad","multiple"
+"Differential plasma proteins","YBX1","secreted","Secreted, Nuclear, Cytoplasmic","broad","multiple"
+"Differential plasma proteins","APOBEC2","unknown",,"specific","Heart muscle, Skeletal muscle"
+"Differential plasma proteins","DCLK1","unknown",,"broad","multiple"
+"Differential plasma proteins","MYBPC1","unknown",,"na",
+"Differential plasma proteins","MYBPC2","unknown",,"specific","Skeletal muscle, Testis"
+"Differential plasma proteins","MYL11","unknown",,"specific","Skeletal muscle"
+"Differential plasma proteins","MYL3","unknown",,"na",
+"Differential plasma proteins","MYL6B","unknown",,"broad","multiple"
+"Differential plasma proteins","TNNI2","unknown",,"na",
+"Differential plasma proteins","TNNT2","unknown",,"na",
+"Progression markers","ACTN2","intracellular","Cytoplasmic","specific","Heart muscle, Skeletal muscle"
+"Progression markers","CKM","intracellular","Cytoplasmic","na",
+"Progression markers","EHMT2","intracellular","Nuclear","broad","multiple"
+"Progression markers","FTL","intracellular","Cytoplasmic","broad","multiple"
+"Progression markers","HPGDS","intracellular","Cytoplasmic","specific","Skin"
+"Progression markers","MORF4L2","intracellular","Nuclear","broad","multiple"
+"Progression markers","MYOM2","intracellular","Cytoplasmic","broad","multiple"
+"Progression markers","NDUFB10","intracellular","Mitochondrial","broad","multiple"
+"Progression markers","SRA1","intracellular","Nuclear, Cytoplasmic","broad","multiple"
+"Progression markers","TPPP2","intracellular","Cytoplasmic, Cell projection","specific","Testis"
+"Progression markers","TPPP3","intracellular","Cytoplasmic, Cytoskeletal","broad","multiple"
+"Progression markers","VAT1","intracellular","Cytoplasmic, Mitochondrial","na",
+"Progression markers","ANTXR1","membrane","Membrane, Cell projection","na",
+"Progression markers","ART3","membrane","Membrane","specific","Testis"
+"Progression markers","ATF6","membrane","Membrane, Nuclear, Cytoplasmic, ER/Golgi","broad","multiple"
+"Progression markers","CACNA2D3","membrane","Membrane","na",
+"Progression markers","CD248","membrane","Membrane","broad","multiple"
+"Progression markers","CD86","membrane","Membrane","broad","multiple"
+"Progression markers","CD93","membrane","Membrane","specific","Colon, Endometrium, Kidney, Skin"
+"Progression markers","DCT","membrane","Membrane","sparse","Skin"
+"Progression markers","DLK1","membrane","Membrane, Cytoplasmic","specific","Adrenal gland"
+"Progression markers","GALNT16","membrane","Membrane, ER/Golgi","broad","multiple"
+"Progression markers","HS6ST2","membrane","Membrane","na",
+"Progression markers","L1CAM","membrane","Membrane, Cell projection","broad","multiple"
+"Progression markers","MXRA8","membrane","Membrane, Nuclear, Cytoplasmic, Cell projection","na",
+"Progression markers","NTM","membrane","Membrane","specific","Cerebellum"
+"Progression markers","OPCML","membrane","Membrane","na",
+"Progression markers","PSTPIP1","membrane","Membrane, Nuclear, Cytoplasmic, Cytoskeletal, Cell projection","specific","Bone marrow, Lymph node, Spleen, Tonsil"
+"Progression markers","RET","membrane","Membrane, Cytoplasmic","broad","multiple"
+"Progression markers","RGMA","membrane","Membrane","broad","multiple"
+"Progression markers","ACHE","secreted","Secreted, Membrane, Nuclear, Cell projection","na",
+"Progression markers","ANOS1","secreted","Secreted, Membrane","na",
+"Progression markers","ANTXR2","secreted","Secreted, Membrane, ER/Golgi","na",
+"Progression markers","C5","secreted","Secreted, Membrane","na",
+"Progression markers","C9","secreted","Secreted, Membrane","na",
+"Progression markers","CD209","secreted","Secreted, Membrane","specific","Placenta"
+"Progression markers","CD55","secreted","Secreted, Membrane","broad","multiple"
+"Progression markers","CHAD","secreted","Secreted","broad","multiple"
+"Progression markers","CILP2","secreted","Secreted","na",
+"Progression markers","CLEC3B","secreted","Secreted","na",
+"Progression markers","CRTAC1","secreted","Secreted","broad","multiple"
+"Progression markers","CXCL12","secreted","Secreted","na",
+"Progression markers","FGL1","secreted","Secreted","na",
+"Progression markers","GPC1","secreted","Secreted, Membrane, Cytoplasmic","na",
+"Progression markers","GSN","secreted","Secreted, Cytoplasmic, Cytoskeletal","broad","multiple"
+"Progression markers","HAMP","secreted","Secreted","na",
+"Progression markers","IGFBP6","secreted","Secreted","broad","multiple"
+"Progression markers","KLK8","secreted","Secreted, Cytoplasmic","specific","Oral mucosa, Skin"
+"Progression markers","MSMP","secreted","Secreted","na",
+"Progression markers","MSTN","secreted","Secreted","na",
+"Progression markers","MYOC","secreted","Secreted, Cytoplasmic, Mitochondrial, ER/Golgi, Cell projection","na",
+"Progression markers","NID1","secreted","Secreted","na",
+"Progression markers","S100A12","secreted","Secreted, Membrane, Cytoplasmic, Cytoskeletal","specific","Bone marrow, Spleen"
+"Progression markers","SPINK9","secreted","Secreted","na",
+"Progression markers","SPINT1","secreted","Secreted, Membrane, Cytoplasmic","na",
+"Progression markers","TGFBR3","secreted","Secreted, Membrane","broad","multiple"
+"Progression markers","TNXB","secreted","Secreted","na",
+"Progression markers","MYBPC1","unknown",,"na",
+"Progression markers","MYL3","unknown",,"na",
+"Progression markers","TNNT2","unknown",,"na",

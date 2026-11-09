@@ -1,0 +1,5 @@
+"Set","Genes","Median_entropy","Median_normalized_entropy","Median_top_tissue_probability","Genes_top_probability_over_0.5","Median_tissues","Wilcoxon_p_vs_panel"
+"Differential plasma proteins",63,4.5,0.847,0.067,2,46,0.0824109629070922
+"Progression markers (FDR)",58,4.5,0.884,0.064,2,46,0.905537351937005
+"Progression markers (nominal)",660,4.59,0.898,0.062,20,46,0.471178996118946
+"Panel",6084,4.65,0.913,0.061,221,46,

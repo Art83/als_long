@@ -1,0 +1,16 @@
+"Set","Tissue","Proteins","Percent_detected","Percent_RNA_protein_mismatch","Percent_not_in_atlas"
+"Panel","Adipose tissue",6295,23.7,0,32.4
+"Differential plasma proteins","Adipose tissue",66,16.7,0,31.8
+"Progression markers","Adipose tissue",60,15,0,31.7
+"Panel","Cerebral cortex",6295,55.7,8.5,3.3
+"Differential plasma proteins","Cerebral cortex",66,43.9,7.6,4.5
+"Progression markers","Cerebral cortex",60,55,8.3,3.3
+"Panel","Heart muscle",6295,51.7,4.1,3.3
+"Differential plasma proteins","Heart muscle",66,59.1,3,4.5
+"Progression markers","Heart muscle",60,51.7,3.3,3.3
+"Panel","Liver",6295,55.9,3.8,3.3
+"Differential plasma proteins","Liver",66,33.3,3,4.5
+"Progression markers","Liver",60,41.7,1.7,3.3
+"Panel","Skeletal muscle",6295,48,1.6,13.5
+"Differential plasma proteins","Skeletal muscle",66,60.6,1.5,10.6
+"Progression markers","Skeletal muscle",60,51.7,1.7,5

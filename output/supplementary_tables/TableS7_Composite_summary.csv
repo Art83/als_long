@@ -1,0 +1,10 @@
+"Statistic","Value"
+"Patients",50
+"Markers",16
+"Composite r with ALSFRS-R slope",0.278079231692677
+"Bootstrap 95% CI lower",0.00926969781122596
+"Bootstrap 95% CI upper",0.509293114755565
+"One-sided permutation p",0.0249875062468766
+"Empirical p against random non-marker sets",0.023976023976024
+"Leave-one-marker-out r, minimum",0.189819927971188
+"Leave-one-marker-out r, maximum",0.32859543817527

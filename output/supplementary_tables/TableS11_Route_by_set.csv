@@ -1,0 +1,13 @@
+"Set","Route","Proteins","Percent"
+"Differential plasma proteins","intracellular",20,30.3030303030303
+"Differential plasma proteins","membrane",17,25.7575757575758
+"Differential plasma proteins","secreted",20,30.3030303030303
+"Differential plasma proteins","unknown",9,13.6363636363636
+"Panel","intracellular",2693,42.7799841143765
+"Panel","membrane",1686,26.7831612390786
+"Panel","secreted",1309,20.7942811755361
+"Panel","unknown",607,9.64257347100874
+"Progression markers","intracellular",12,20
+"Progression markers","membrane",18,30
+"Progression markers","secreted",27,45
+"Progression markers","unknown",3,5
