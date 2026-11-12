@@ -427,27 +427,104 @@ print(p4b)
 dev.off()
 
 
-# not sure about value of this
+# ---- Fig 4C. Known motor neuron and glial markers, per iMN line ----
+# Same samples, normalisation and detection rules as 01_grounding_map.R
 mn_genes <- c("NEFL", "NEFH", "STMN2", "TARDBP", "SOD1", "UCHL1")
 glia_genes <- c("GFAP", "CHIT1", "CHI3L1", "CHI3L2", "MMP9")
-kd <- known %>% filter(gene_symbol %in% c(mn_genes, glia_genes)) %>% distinct(gene_symbol, .keep_all = TRUE) %>%
-  transmute(gene_symbol,
-            Transcript = ifelse(mn_rna_detected, "Detected", "Not detected"),
-            Protein = ifelse(!ms_measured, "Not measured", ifelse(mn_protein_detected, "Detected", "Not detected")),
-            `Accessible promoter` = ifelse(mn_chromatin_open, "Detected", "Not detected")) %>%
-  pivot_longer(-gene_symbol, names_to = "layer", values_to = "state") %>%
-  mutate(gene_symbol = factor(gene_symbol, levels = c(mn_genes, glia_genes)),
-         layer = factor(layer, levels = c("Transcript", "Protein", "Accessible promoter")),
-         group = ifelse(gene_symbol %in% mn_genes, "Motor neuron", "Glial and inflammatory"),
-         group = factor(group, levels = c("Motor neuron", "Glial and inflammatory")))
-p4c <- ggplot(kd, aes(gene_symbol, layer, fill = state)) +
-  geom_tile(colour = "white", linewidth = 0.6) +
-  facet_grid(~ group, scales = "free_x", space = "free_x") +
-  scale_fill_manual(values = c(Detected = "#2166AC", `Not detected` = "grey85", `Not measured` = "white"), name = NULL) +
-  labs(tag = "C", x = NULL, y = NULL) +
-  base + theme(legend.position = "bottom", panel.grid = element_blank(),
-               axis.text.x = element_text(angle = 45, hjust = 1, face = "italic"),
-               panel.border = element_rect(colour = "grey60", fill = NA))
+grp_lab <- c("Motor neuron", "Glial and inflammatory")
+
+ids4 <- read.csv("../output/grounding/grounding_map.csv", stringsAsFactors = FALSE) %>%
+  filter(gene_symbol %in% c(mn_genes, glia_genes)) %>% distinct(gene_symbol, ensembl_id, uniprot)
+mapper4 <- read.csv("../raw/transcriptomics/4_matrix/Sample Mapping Information/Sample Mapping File Feb 2024.csv",
+                    check.names = FALSE)
+meta4 <- read.csv("../proc/meta.csv") %>% filter(SUBJECT_GROUP %in% c("ALS", "Healthy Control"))
+
+# transcript: VST across iMN lines, plus % of lines with > 5 reads
+cnt4 <- read.csv("../raw/transcriptomics/4_matrix/AnswerALS-290-T-v1-release5_rna-counts-matrix.csv", check.names = FALSE)
+rownames(cnt4) <- cnt4[, 1]; cnt4 <- cnt4[, -1]
+meta_rna4 <- meta4 %>% inner_join(mapper4[, c("Participant_ID", "Sample_ID", "Batch")], by = "Participant_ID") %>%
+  filter(Sample_ID %in% colnames(cnt4))
+cnt4 <- cnt4[, meta_rna4$Sample_ID]
+cnt4 <- cnt4[rowSums(cnt4) > 0, ]
+dds4 <- DESeq2::estimateSizeFactors(DESeq2::DESeqDataSetFromMatrix(cnt4, meta_rna4, design = ~ 1))
+vst4 <- SummarizedExperiment::assay(DESeq2::vst(dds4, blind = TRUE))
+rna_pct <- data.frame(ensembl_id = intersect(ids4$ensembl_id, rownames(cnt4))) %>%
+  mutate(pct = 100 * rowMeans(cnt4[ensembl_id, , drop = FALSE] > 5)) %>%
+  left_join(ids4 %>% distinct(ensembl_id, gene_symbol), by = "ensembl_id")
+rna4 <- as.data.frame(t(vst4[intersect(ids4$ensembl_id, rownames(vst4)), , drop = FALSE])) %>%
+  mutate(line = rownames(.)) %>% pivot_longer(-line, names_to = "ensembl_id", values_to = "value") %>%
+  left_join(ids4 %>% distinct(ensembl_id, gene_symbol), by = "ensembl_id") %>%
+  mutate(layer = "Transcript")
+rm(cnt4, dds4, vst4)
+
+# protein: non-imputed iMN matrix, lines restricted to those in the imputed matrix, zero = not quantified
+ms4 <- read.csv("../raw/proteomics/4_matrix/AnswerALS-447-P_proteomics-protein-matrix_prebatchcorrected.txt",
+                sep = "\t", check.names = FALSE)
+ms4 <- ms4[, !colnames(ms4) %in% c("nFragment", "nPeptide")]
+ms4$uniprot <- vapply(strsplit(as.character(ms4$Protein), "[|]"),
+                      function(x) if (length(x) >= 2) x[2] else NA_character_, character(1))
+ms4 <- ms4[!is.na(ms4$uniprot) & !duplicated(ms4$uniprot), ]
+scols4 <- setdiff(colnames(ms4), c("Protein", "uniprot"))
+sclean4 <- gsub("_", "-", gsub("(-P).+$", "\\1", scols4))
+imp_cols4 <- names(read.delim("../raw/proteomics/4_matrix/AnswerALS-436-P_proteomics-protein-matrix_correctedImputed.txt",
+                              nrows = 1, check.names = FALSE))
+imp_clean4 <- gsub("_", "-", gsub("(-P).+$", "\\1", setdiff(imp_cols4, c("Protein", "nFragment", "nPeptide"))))
+ms_ids4 <- meta4 %>% inner_join(mapper4[, c("Participant_ID", "Sample_ID")], by = "Participant_ID") %>%
+  filter(Sample_ID %in% imp_clean4) %>% pull(Sample_ID)
+keep4 <- scols4[sclean4 %in% ms_ids4]
+prot4 <- ms4 %>% filter(uniprot %in% ids4$uniprot) %>% select(uniprot, all_of(keep4)) %>%
+  pivot_longer(-uniprot, names_to = "line", values_to = "value") %>%
+  mutate(value = suppressWarnings(as.numeric(value))) %>%
+  left_join(ids4 %>% distinct(uniprot, gene_symbol), by = "uniprot") %>%
+  mutate(layer = "Protein")
+n_ms_lines <- length(keep4)
+rm(ms4)
+prot_pct <- prot4 %>% group_by(gene_symbol) %>%
+  summarise(pct = 100 * mean(is.finite(value) & value > 0), .groups = "drop")
+prot4 <- prot4 %>% filter(is.finite(value), value > 0) %>% mutate(value = log2(value))
+
+lev4 <- c(mn_genes, glia_genes)
+layer_lab <- c(Transcript = "Transcript (VST)", Protein = "Protein (log2 intensity)")
+fd <- bind_rows(rna4 %>% select(gene_symbol, layer, value), prot4 %>% select(gene_symbol, layer, value)) %>%
+  mutate(group = factor(ifelse(gene_symbol %in% mn_genes, grp_lab[1], grp_lab[2]), levels = grp_lab),
+         gene_symbol = factor(gene_symbol, levels = lev4),
+         layer = factor(unname(layer_lab[layer]), levels = unname(layer_lab)))
+
+# annotations: % of lines above each box, one label in the empty glial protein panel
+rna_y <- range(fd$value[fd$layer == layer_lab["Transcript"]])
+prot_y <- range(fd$value[fd$layer == layer_lab["Protein"]])
+rpct_d <- rna_pct %>%
+  mutate(group = factor(ifelse(gene_symbol %in% mn_genes, grp_lab[1], grp_lab[2]), levels = grp_lab),
+         gene_symbol = factor(gene_symbol, levels = lev4),
+         layer = factor(unname(layer_lab["Transcript"]), levels = unname(layer_lab)),
+         y = rna_y[2] + 0.06 * diff(rna_y), lab = sprintf("%.0f%%", pct))
+pct_d <- prot_pct %>%
+  mutate(group = factor(grp_lab[1], levels = grp_lab), gene_symbol = factor(gene_symbol, levels = lev4),
+         layer = factor(unname(layer_lab["Protein"]), levels = unname(layer_lab)),
+         y = prot_y[2] + 0.06 * diff(prot_y), lab = sprintf("%.0f%%", pct))
+nm_d <- data.frame(gene_symbol = factor("CHI3L1", levels = lev4), group = factor(grp_lab[2], levels = grp_lab),
+                   layer = factor(unname(layer_lab["Protein"]), levels = unname(layer_lab)), y = mean(prot_y))
+
+p4c <- ggplot(fd, aes(gene_symbol, value)) +
+  geom_jitter(aes(colour = group), width = 0.15, height = 0, size = 0.25, alpha = 0.35) +
+  geom_boxplot(aes(fill = group), width = 0.6, outlier.shape = NA, alpha = 0.55, linewidth = 0.3) +
+  geom_text(data = rpct_d, aes(gene_symbol, y, label = lab), size = 2, colour = "grey25") +
+  geom_text(data = pct_d, aes(gene_symbol, y, label = lab), size = 2, colour = "grey25") +
+  geom_text(data = nm_d, aes(gene_symbol, y), label = "",
+            size = 2.4, colour = "grey45", lineheight = 0.85) +
+  facet_grid(layer ~ group, scales = "free", space = "free_x", switch = "y") +
+  scale_fill_manual(values = c(`Motor neuron` = col_down, `Glial and inflammatory` = "grey55"), guide = "none") +
+  scale_colour_manual(values = c(`Motor neuron` = col_down, `Glial and inflammatory` = "grey40"), guide = "none") +
+  labs(tag = "", x = NULL, y = NULL) +
+  base + theme(strip.placement = "outside",
+               axis.text.x = element_text(angle = 45, hjust = 1, face = "italic", size = 9),
+               strip.text = element_text(size = 9))
+
+cat(sprintf("  Fig 4C: %d iMN lines with RNA-seq, %d with mass spectrometry\n", length(unique(rna4$line)), n_ms_lines))
+
+tiff(paste0(OUT, "Fig4C.tiff"), width = 5, height = 5, units = "in", res = 300, compression = "lzw")
+print(p4c)
+dev.off()
 
 save_fig("Fig4.tiff", list(blank_panel("A", "Map construction (drawn separately)"), p4b, p4c),
          matrix(c(1, 1, 2, 3, 2, 3), nrow = 3, byrow = TRUE), width = 7.2, height = 6.5)
