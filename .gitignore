@@ -1,3 +1,4 @@
 /raw/*
+/proc/*
 /output/**/*.Rdata
 /output/**/*.rds

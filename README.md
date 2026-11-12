@@ -87,6 +87,9 @@ Rscript 05_target_als_replication_biomarkers.R   > ../output/05_console.txt 2>&1
 Rscript 06_fast_vs_slow_progressors.R > ../output/06_console.txt
 Rscript 07_fast_progressor_clinical.R > ../output/07_console.txt
 Rscript 08_target_als_validation_progressors.R > ../output/08_console.txt
+Rscript 09_main_figures.R
+Rscript 10_supplementary_figures.R
+Rscript 11_supplementary_tables.R
 ```
 
 `00_visit_time.R` is sourced by 02 and 04 and is not run on its own. Script 02 fits a random slope model per aptamer and runs on all available cores minus one (socket cluster on Windows, fork elsewhere), and takes the longest. The permutation test in 02 is seeded (`set.seed(42)`).
@@ -112,6 +115,8 @@ Rscript 08_target_als_validation_progressors.R > ../output/08_console.txt
 **07_fast_progressor_clinical.R** Profiling fast progressors.
 
 **08_target_als_validation_progressors.R** Do the fidings in progressors arm replicate in external cohort?
+
+**09 - 11 scripts generate figures and tables for the manuscript. There are no results there**
 
 ## Note on annotations
 
